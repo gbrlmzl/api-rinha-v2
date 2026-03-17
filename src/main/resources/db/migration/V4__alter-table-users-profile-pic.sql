@@ -1,0 +1,1 @@
+ALTER TABLE users CHANGE profilePic profile_Pic VARCHAR(255);
