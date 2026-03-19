@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.domain.user_auth_provider;
+package rinhacampusiv.api.v2.domain.userAuthProvider;
 import rinhacampusiv.api.v2.domain.user.User;
 
 import jakarta.persistence.*;

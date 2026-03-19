@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -24,43 +25,67 @@ public class SecurityFilter extends OncePerRequestFilter {
     private UserRepository repository;
 
 
+    private static final List<String> PUBLIC_ROUTES = List.of(
+            "/auth/login",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/me"
+    );
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return PUBLIC_ROUTES.stream().anyMatch(path::startsWith);
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+
+       /*
+        if (path.equals("/auth/login") || path.equals("/auth/register")) { //alteração temporária para ignorar as rotas públicas para teste com inmsomnia
+            filterChain.doFilter(request, response);
+            return;
+        }
+        */
 
         var tokenJWT = recuperarToken(request);
 
-        if(tokenJWT != null) {
-            var subject = tokenService.getSubject(tokenJWT);
-            var usuario = repository.findByUsername(subject);
+        if (tokenJWT != null) {
+            try{
+                var subject = tokenService.getSubject(tokenJWT);
+                var user = repository.findByUsername(subject);
 
-            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                if(user != null) {
+                    var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception e) {
+                // token inválido → apenas não autentica
+                SecurityContextHolder.clearContext();
+            }
         }
 
-
-
         filterChain.doFilter(request, response);
-
-
-
-        //Para chamar os próximos filtros na aplicação
-
-
-
-
 
     }
 
     private String recuperarToken(HttpServletRequest request) {
+        // 1) Tenta pegar do header Authorization
         var authorizationHeader = request.getHeader("Authorization");
-
-        if (authorizationHeader != null){
-            return authorizationHeader.replace("Bearer", "").trim(); //Verificar como o authorizationHeader vem em outros clients
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.replace("Bearer", "").trim();
         }
 
-        return  null; //se não chegar cabeçalho, o Spring que verifica se o usuário está logado (método securityFilterChain)
+        // 2) Se não tiver header, tenta pegar do cookie
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("JWT".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
 
-
+        return null;
     }
 }

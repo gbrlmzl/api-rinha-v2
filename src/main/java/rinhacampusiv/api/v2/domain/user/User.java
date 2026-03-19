@@ -1,10 +1,7 @@
 package rinhacampusiv.api.v2.domain.user;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Table(name = "users")
 @Entity(name = "User")
@@ -23,9 +19,8 @@ import java.util.UUID;
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private boolean active;
 
@@ -43,8 +38,8 @@ public class User implements UserDetails {
     @Column(length = 255)
     private String profilePic;
 
-    @Column(nullable = false, name = "createdAt")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(nullable = false, insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     // Implementação obrigatória do UserDetails
     @Override
@@ -55,11 +50,11 @@ public class User implements UserDetails {
 
     public User(RegisterData registerData){
         this.active = true;
-        this.nickname = registerData.nickname();
+        this.nickname = registerData.email().substring(0, registerData.email().indexOf("@"));;
         this.username = registerData.username();
         this.password = registerData.password();
         this.email    = registerData.email();
-        this.profilePic = registerData.profilePic();
+        this.profilePic = null;
     }
 
     @Override
