@@ -10,10 +10,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -28,8 +31,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     private static final List<String> PUBLIC_ROUTES = List.of(
             "/auth/login",
             "/auth/register",
-            "/auth/refresh",
-            "/auth/me"
+            "/auth/refresh"
     );
 
     @Override
@@ -41,6 +43,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
+        logger.debug("Entrando no filtro JWT para a URL: {}");
 
        /*
         if (path.equals("/auth/login") || path.equals("/auth/register")) { //alteração temporária para ignorar as rotas públicas para teste com inmsomnia
@@ -54,11 +57,16 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (tokenJWT != null) {
             try{
                 var subject = tokenService.getSubject(tokenJWT);
-                var user = repository.findByUsername(subject);
+                Long subjectToLong = Long.parseLong(subject);
 
-                if(user != null) {
+                Optional<User> userOpt = repository.findById(subjectToLong);
+
+                if(userOpt.isPresent()) {
+                    User user = userOpt.get();
+
                     var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(auth);
+
                 }
             } catch (Exception e) {
                 // token inválido → apenas não autentica

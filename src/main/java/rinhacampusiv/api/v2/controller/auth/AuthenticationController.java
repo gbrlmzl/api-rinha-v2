@@ -4,7 +4,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,10 +23,7 @@ import rinhacampusiv.api.v2.infra.security.SecurityConfigurations;
 import rinhacampusiv.api.v2.infra.security.TokenJWTData;
 import rinhacampusiv.api.v2.infra.security.TokenService;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -127,31 +126,50 @@ public class AuthenticationController {
                 .body("Token renovado");
     }
 
-    /* -> Refatorar esse método
+
+
+
     @GetMapping("/me")
+    public ResponseEntity<?> me(HttpServletRequest request){
+        try{
+            //1 Cookie ausente ou inválido
+            if (request.getCookies() == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token não encontrado");
+            }
 
-    public ResponseEntity<?> me(){
-        var user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal(); -> O problema deve estar aqui.
+
+            String accessToken = Arrays.stream(request.getCookies())
+                    .filter(c -> "JWT".equals(c.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Refresh token não encontrado"));
 
 
+            String subject = tokenService.getSubject(accessToken);
+            Optional<User> userOpt = repository.findById(Long.parseLong(subject));
 
-        System.out.println(user.getId()); //print para debug
-        if(user != null){
-            return ResponseEntity.ok(Map.of(
-                    "id", user.getId(),
-                    "username", user.getUsername(),
-                    "nickname", user.getNickname(),
-                    "email", user.getEmail(),
-                    "profilePic", user.getProfilePic()
+            if(userOpt.isPresent()){
+                var user = userOpt.get();
+                return ResponseEntity.ok(Map.of(
+                        "id", user.getId(),
+                        "username", user.getUsername(),
+                        "nickname", user.getNickname(),
+                        "email", user.getEmail(),
+                        "profilePic", user.getProfilePic() != null ? user.getProfilePic() : ""
 
-            ));
+                ));
+            } else{
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
+            }
 
-        }else{
-            return ResponseEntity.badRequest().body("Não autenticado");
+        } catch (Exception e){
+            //2 Token inválido ou expirado
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou expirado");
         }
 
+
     }
-    */
+
 
 
 }
