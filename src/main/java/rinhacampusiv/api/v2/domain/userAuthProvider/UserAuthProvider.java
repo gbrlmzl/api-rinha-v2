@@ -23,9 +23,8 @@ import java.util.UUID;
 public class UserAuthProvider {
 
     @Id
-    @GeneratedValue
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)

@@ -12,7 +12,7 @@ CREATE TABLE users
 
 CREATE TABLE user_auth_providers
 (
-    id         BINARY(16)  PRIMARY KEY DEFAULT (UUID_TO_BIN(UUID())),
+    id         BIGINT  PRIMARY KEY AUTO_INCREMENT,
     userId     BIGINT   NOT NULL,
     provider   VARCHAR(50)  NOT NULL,
     providerId VARCHAR(100) NOT NULL,
