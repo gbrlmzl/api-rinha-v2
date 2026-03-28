@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import rinhacampusiv.api.v2.domain.user.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -136,6 +137,20 @@ public class TokenService {
         }
 
 
+    }
+
+    // Retorna true se o token existir mas estiver expirado
+    public boolean isExpired(String token) {
+        var algorithm = Algorithm.HMAC256(secret);
+
+        try {
+            JWT.require(algorithm).build().verify(token);
+            return false; // válido
+        } catch (TokenExpiredException e) {
+            return true;  // expirado — vale tentar refresh
+        } catch (Exception e) {
+            return false; // inválido por outro motivo
+        }
     }
 
     private Instant dataExpiracao() {

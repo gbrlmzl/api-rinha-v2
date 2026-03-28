@@ -21,6 +21,8 @@ public record RegisterData(
 
         @NotBlank(message = "Senha obrigatória")
         @Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres")
+        @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+                message = "Senha deve conter ao menos uma letra maiúscula e um número")
         String password
 
 ) {}

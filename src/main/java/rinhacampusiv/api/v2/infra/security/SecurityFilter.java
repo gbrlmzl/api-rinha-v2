@@ -1,6 +1,7 @@
 package rinhacampusiv.api.v2.infra.security;
 
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,7 +32,8 @@ public class SecurityFilter extends OncePerRequestFilter {
     private static final List<String> PUBLIC_ROUTES = List.of(
             "/auth/login",
             "/auth/register",
-            "/auth/refresh"
+            "/auth/refresh",
+            "/auth/me"
     );
 
     @Override
@@ -54,7 +56,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         var tokenJWT = recuperarToken(request);
 
-        if (tokenJWT != null) {
+        /*if (tokenJWT != null) {
             try{
                 var subject = tokenService.getSubject(tokenJWT);
                 Long subjectToLong = Long.parseLong(subject);
@@ -70,6 +72,28 @@ public class SecurityFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 // token inválido → apenas não autentica
+                SecurityContextHolder.clearContext();
+            }
+        }*/
+
+        if (tokenJWT != null) {
+            try {
+                var subject = tokenService.getSubject(tokenJWT);
+                Optional<User> userOpt = repository.findById(Long.parseLong(subject));
+
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+
+            } catch (TokenExpiredException e) {
+                // Marca na request para o CustomAuthEntryPoint identificar
+                request.setAttribute("token_error", "token_expired");
+                SecurityContextHolder.clearContext();
+
+            } catch (Exception e) {
+                request.setAttribute("token_error", "token_invalid");
                 SecurityContextHolder.clearContext();
             }
         }
