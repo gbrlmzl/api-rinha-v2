@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Table(
         name = "user_auth_providers",
@@ -27,15 +26,15 @@ public class UserAuthProvider {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false, length = 50)
     private String provider;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "provider_id", nullable = false, length = 100)
     private String providerId;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

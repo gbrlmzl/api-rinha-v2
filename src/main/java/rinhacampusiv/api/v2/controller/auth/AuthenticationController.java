@@ -68,7 +68,6 @@ public class AuthenticationController {
     public ResponseEntity loginAction(@RequestBody @Valid LoginData data) {
         var authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
         var authentication = manager.authenticate(authenticationToken);
-        System.out.println(data.keepLoggedIn());
 
         var accessToken = tokenService.generateToken((User) authentication.getPrincipal());
         var refreshToken = tokenService.generateRefreshToken((User) authentication.getPrincipal());

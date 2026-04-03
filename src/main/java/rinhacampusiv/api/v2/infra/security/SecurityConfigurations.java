@@ -1,5 +1,6 @@
 package rinhacampusiv.api.v2.infra.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,13 +25,6 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfigurations {
 
-   /*public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception  {
-       return http.csrf().disable()
-               .sessionManagement().sessionCreatePolicy(SessionCreationPolicy.STATELESS)
-               .and().build();
-
-   }*/ //Versão antiga pré Spring 6.x
-
     @Autowired
     private SecurityFilter securityFilter;
 
@@ -46,12 +40,24 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ← preflight sempre passa
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/me").permitAll() // ← adiciona essa linha
+                        .requestMatchers(HttpMethod.GET, "/auth/me").permitAll()
+                        // Torneios — leitura pública, escrita restrita ao ADMIN
+                        .requestMatchers(HttpMethod.GET,    "/tournaments/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,   "/tournaments").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,  "/tournaments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/tournaments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/tournaments/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
-                .build();
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authEntryPoint)  // 401
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Acesso negado\"}");
+                        })
+                ).build();
     }
 
     @Bean

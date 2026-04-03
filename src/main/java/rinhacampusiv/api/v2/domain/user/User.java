@@ -27,6 +27,10 @@ public class User implements UserDetails {
 
     private boolean active;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private UserRole role;
+
     @Column(nullable = false, length = 100)
     private String nickname;
 
@@ -38,21 +42,26 @@ public class User implements UserDetails {
 
     @Column(length = 100)
     private String password;
-    @Column(length = 255)
+
+
+    // camelCase → snake_case: profilePic → profile_pic
+    @Column(name = "profile_pic", length = 255)
     private String profilePic;
 
-    @Column(nullable = false, insertable = false, updatable = false)
+    // camelCase → snake_case: createdAt → created_at
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Implementação obrigatória do UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Aqui você pode trocar por roles vindas do banco
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+        // USER  → "ROLE_USER"
+        // ADMIN → "ROLE_ADMIN"
     }
 
     public User(RegisterData registerData){
         this.active = true;
+        this.role   = UserRole.USER;
         this.nickname = registerData.email().substring(0, registerData.email().indexOf("@"));;
         this.username = registerData.username();
         this.password = registerData.password();
