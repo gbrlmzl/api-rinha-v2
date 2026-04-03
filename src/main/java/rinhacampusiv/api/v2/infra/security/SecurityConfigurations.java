@@ -47,6 +47,8 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.PATCH,  "/tournaments/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/tournaments/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/tournaments/**").hasRole("ADMIN")
+                        // Autorizar /webhook para a notificação do pagamento do mercadopago
+                        .requestMatchers(HttpMethod.POST,"/webhook").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

@@ -47,34 +47,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         logger.debug("Entrando no filtro JWT para a URL: {}");
 
-       /*
-        if (path.equals("/auth/login") || path.equals("/auth/register")) { //alteração temporária para ignorar as rotas públicas para teste com inmsomnia
-            filterChain.doFilter(request, response);
-            return;
-        }
-        */
-
         var tokenJWT = recuperarToken(request);
-
-        /*if (tokenJWT != null) {
-            try{
-                var subject = tokenService.getSubject(tokenJWT);
-                Long subjectToLong = Long.parseLong(subject);
-
-                Optional<User> userOpt = repository.findById(subjectToLong);
-
-                if(userOpt.isPresent()) {
-                    User user = userOpt.get();
-
-                    var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-
-                }
-            } catch (Exception e) {
-                // token inválido → apenas não autentica
-                SecurityContextHolder.clearContext();
-            }
-        }*/
 
         if (tokenJWT != null) {
             try {

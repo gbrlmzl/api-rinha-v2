@@ -77,16 +77,18 @@ public class ProcessTournamentRegistrationService {
 
     public PaymentEntity generateNewPayment(Team team, PaymentRegistrationDataMercadoPago paymentData){
         BigDecimal value = null;
+        String payerName = paymentData.nome() + " " + paymentData.sobrenome();
+
         if(team.getPlayers().size() == 5){
-            value = new BigDecimal(50);
+            value = new BigDecimal(1);
         } else{
-            value = new BigDecimal(60);
+            value = new BigDecimal(2);
         }
 
-        System.out.println("chegou aqui no pagamento");
+
         Payment generatedPayment = emitPaymentService.emitPayment(paymentData, value);
-        System.out.println(generatedPayment);
-        return new PaymentEntity(generatedPayment);
+
+        return new PaymentEntity(generatedPayment, payerName);
 
 
     }

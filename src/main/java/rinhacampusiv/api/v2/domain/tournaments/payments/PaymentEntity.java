@@ -58,6 +58,8 @@ public class PaymentEntity {
     @Column(length = 100)
     private String payer;
 
+
+    /* Construtor legado */
     public PaymentEntity(Payment data) {
         this.mercadoPagoId = String.valueOf(data.getId());
         this.status       = data.getStatus();
@@ -67,10 +69,25 @@ public class PaymentEntity {
 
         this.uuid = UUID.randomUUID().toString();
         this.expiresAt    = data.getDateOfExpiration();
-        this.payer        = data.getPayer().getFirstName() + " " +  data.getPayer().getLastName();
         this.qrCode = data.getPointOfInteraction().getTransactionData().getQrCode();
 
     }
+
+    public PaymentEntity(Payment data, String payerName) {
+        this.mercadoPagoId = String.valueOf(data.getId());
+        this.status       = data.getStatus();
+        this.statusDetail = data.getStatusDetail();
+        this.createdAt = data.getDateCreated();
+        this.value = data.getTransactionAmount();
+
+        this.uuid = UUID.randomUUID().toString();
+        this.expiresAt    = data.getDateOfExpiration();
+        this.qrCode = data.getPointOfInteraction().getTransactionData().getQrCode();
+        this.payer = payerName;
+
+    }
+
+
 
     public void linkTeam (Team team){
         this.team = team;
