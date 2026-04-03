@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.domain.tournaments.registrations;
 
 import com.mercadopago.resources.payment.Payment;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.utils.QrCodeUtil;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -13,10 +14,12 @@ public record GeneratedPaymentData(
         BigDecimal value,
         OffsetDateTime createdAt,
         String uuid,
-        String qrCode
-        //String qrCodeBase64
+        String qrCode,
+        String qrCodeBase64
 
 ) {
+
+
     public GeneratedPaymentData(PaymentEntity data) {
         this(
                 String.valueOf(data.getId()),
@@ -25,8 +28,11 @@ public record GeneratedPaymentData(
                 data.getValue(),
                 data.getCreatedAt(),
                 data.getUuid(),
-                data.getQrCode()
+                data.getQrCode(),
+                QrCodeUtil.generateBase64(data.getQrCode())
 
         );
     }
+
+
 }

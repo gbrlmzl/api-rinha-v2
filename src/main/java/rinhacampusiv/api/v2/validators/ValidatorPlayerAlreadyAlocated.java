@@ -11,20 +11,41 @@ import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 import java.util.List;
 
 @Component
-public class ValidatorPlayerAlreadyAlocated implements Validator{
+public class ValidatorPlayerAlreadyAlocated implements Validator {
 
     @Autowired
     private PlayerRepository playerRepository;
 
     @Override
-    public void validate(TournamentRegistrationData data, Tournament tournament){
+    public void validate(TournamentRegistrationData data, Tournament tournament) {
         List<PlayerRegisterData> players = data.teamData().players();
 
-        for(PlayerRegisterData playerData : players){
-            if(playerRepository.existsBySchoolIdAndTeamTournamentId(playerData.schoolId(), tournament.getId())){
-                throw new ValidatorException("Jogador: " + playerData.playerName() + " já está inscrito em uma equipe neste torneio");
+        Long tournamentId = tournament.getId();
+
+        for (PlayerRegisterData playerData : players) {
+
+            if (playerRepository.existsBySchoolIdAndTeamTournamentId(
+                    playerData.schoolId(), tournament.getId())) {
+
+                throw new ValidatorException(
+                        String.format(
+                                "Já existe um jogador com a matrícula nº %s inscrito em uma equipe neste torneio",
+                                playerData.schoolId()
+                        )
+                );
+
+            } else if (playerRepository.existsByNicknameAndTeamTournamentId(
+                    playerData.nickname(), tournament.getId())) {
+
+                throw new ValidatorException(
+                        String.format(
+                                "Já existe um jogador com o nickname \"%s\" inscrito em uma equipe neste torneio",
+                                playerData.nickname()
+                        )
+                );
             }
         }
+
 
     }
 }

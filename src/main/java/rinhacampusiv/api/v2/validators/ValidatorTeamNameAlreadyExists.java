@@ -18,7 +18,7 @@ public class ValidatorTeamNameAlreadyExists implements Validator{
     public void validate(TournamentRegistrationData data, Tournament tournament){
         String teamName = data.teamData().teamName();
         if(teamRepository.existsByNameAndTournamentId(teamName, tournament.getId())){
-           throw new ValidatorException("Nome da equipe: " + teamName + " já existe neste torneio");
+           throw new ValidatorException(String.format("Já existe uma equipe com o nome \"%s\" cadastrada neste torneio", teamName));
         }
     }
 }

@@ -6,4 +6,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     // Verifica se o schoolId já está cadastrado em alguma equipe do torneio
     Boolean existsBySchoolIdAndTeamTournamentId(String schoolId, Long tournamentId);
+
+    Boolean existsByNicknameAndTeamTournamentId(String playerNickName, Long tournamentId);
 }

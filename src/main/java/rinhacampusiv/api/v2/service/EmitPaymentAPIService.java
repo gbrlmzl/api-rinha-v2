@@ -31,7 +31,7 @@ public class EmitPaymentAPIService {
     private String accessTokenTest;
 
     public Payment emitPayment (PaymentRegistrationDataMercadoPago data, BigDecimal value){
-        MercadoPagoConfig.setAccessToken(accessTokenTest);
+        MercadoPagoConfig.setAccessToken(accessToken);
 
         PaymentClient client = new PaymentClient();
 

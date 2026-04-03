@@ -83,7 +83,9 @@ public class ProcessTournamentRegistrationService {
             value = new BigDecimal(60);
         }
 
+        System.out.println("chegou aqui no pagamento");
         Payment generatedPayment = emitPaymentService.emitPayment(paymentData, value);
+        System.out.println(generatedPayment);
         return new PaymentEntity(generatedPayment);
 
 

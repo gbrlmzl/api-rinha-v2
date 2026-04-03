@@ -74,6 +74,13 @@ public class TratadorDeErros {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(ValidatorException.class)
+    public ResponseEntity<?> tratarErroDeValidacao(Exception ex){
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // Fallback — qualquer erro não tratado
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> tratarErroGenerico(Exception ex) {
