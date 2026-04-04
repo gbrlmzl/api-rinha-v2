@@ -3,6 +3,7 @@ package rinhacampusiv.api.v2.service;
 import com.mercadopago.resources.payment.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
@@ -11,6 +12,7 @@ import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrat
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamShieldData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.validators.Validator;
@@ -27,22 +29,41 @@ public class ProcessTournamentRegistrationService {
     private EmitPaymentAPIService emitPaymentService;
 
     @Autowired
+    private ImgurAPIService imgurService;
+
+    @Autowired
     private TeamRepository teamRepository;
 
     @Autowired
     private List<Validator> validators;
 
-    public GeneratedPaymentData registerTeam(TournamentRegistrationData registrationData, Tournament tournament, User captain){
+    //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
+
+    public GeneratedPaymentData registerTeam(TournamentRegistrationData registrationData,
+                                             MultipartFile teamShieldFile,
+                                             Tournament tournament,
+                                             User captain){
         validators.forEach(v -> v.validate(registrationData, tournament));
 
+
+        System.out.println(registrationData.toString());
         TeamRegisterData teamData = registrationData.teamData();
         PaymentRegistrationDataMercadoPago paymentData = registrationData.paymentData();
+
 
         Team team = null;
         if(teamRepository.existsByNameAndTournamentId(teamData.teamName(), tournament.getId())){
             team = teamRepository.findByNameAndTournamentId(teamData.teamName(), tournament.getId()).get();
         } else {
+            String shieldUrl = null;
+            if (teamShieldFile != null) {
+                shieldUrl = imgurService.uploadShield(teamShieldFile, teamData.teamName());
+                System.out.println(shieldUrl);
+            }
+
+
             team = new Team(teamData, captain, tournament);
+            team.setShieldUrl(shieldUrl);
         }
 
         return linkPaymentInTeam(team, paymentData);

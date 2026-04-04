@@ -17,6 +17,7 @@ public class ValidatorSameSchoolId implements Validator{
         List<PlayerRegisterData> players = data.teamData().players();
         Set<String> uniques = new HashSet<>();
         boolean hasDuplicates = players.stream()
+                .filter(player -> player.schoolId() != null && !player.schoolId().isBlank() )
                 .anyMatch(player -> !uniques.add(player.schoolId()));
 
         if(hasDuplicates){

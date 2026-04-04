@@ -58,7 +58,6 @@ public class Team {
         this.captain    = captain;
         this.tournament = tournament;
         this.name       = data.teamName();
-        this.shieldUrl  = data.teamShieldUrl();
         this.status     = TeamStatus.PENDING_PAYMENT;
         this.active     = false;
         this.players    = convertPlayerList(data.players(), this);

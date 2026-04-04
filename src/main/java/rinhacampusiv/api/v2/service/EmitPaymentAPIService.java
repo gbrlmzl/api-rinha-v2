@@ -60,7 +60,7 @@ public class EmitPaymentAPIService {
                 .description("Inscrição Rinha do Campus IV")
                 .paymentMethodId("pix")
                 .dateOfExpiration(OffsetDateTime.now().plusHours(1))
-                .notificationUrl("https://meu-dominio/webhook") //dominio base + /webhooks
+                .notificationUrl("https://2bdc-2804-9f8-4780-3cd0-21be-52be-8501-1ed0.ngrok-free.app/webhook") //dominio base + /webhooks
                 .payer(payerData)
                 .build();
 

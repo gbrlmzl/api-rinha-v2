@@ -12,6 +12,7 @@ import rinhacampusiv.api.v2.domain.websocket.WebSocketPaymentData;
 import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.payments.TeamWithoutPaymentException;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,10 +24,10 @@ public class VerifyEfetuedPaymentService {
     private SimpMessagingTemplate messageSender;
 
     @Autowired
-    PaymentRepository paymentRepository;
+    private PaymentRepository paymentRepository;
 
     @Autowired
-    TeamRepository teamRepository;
+    private TeamRepository teamRepository;
 
     public void verifyPayment(Payment paymentData) {
         String mercadoPagoPaymentId = String.valueOf(paymentData.getId());
@@ -55,17 +56,18 @@ public class VerifyEfetuedPaymentService {
                     payment, "Pagamento confirmado com sucesso"
             );
 
+            Map<String, String> payload = Map.of("status", payment.getStatus());
             messageSender.convertAndSend(
-                    "/topic/pagamentos/" + webSocketMessageData.uuid(),
-                    webSocketMessageData
+                    "/topic/payment/" + webSocketMessageData.uuid(),
+                    payload
             );
 
         } else {
+            Map<String, String> payload = Map.of("status", payment.getStatus());
             messageSender.convertAndSend(
-                    "/topic/pagamentos/" + payment.getUuid(),
-                    "Pagamento " + payment.getMercadoPagoId() + " ainda não aprovado: "
-                            + payment.getStatus()
-                            + " (" + payment.getStatusDetail() + ")"
+                    "/topic/payment/" + payment.getUuid(),
+                    payload
+
             );
         }
     }

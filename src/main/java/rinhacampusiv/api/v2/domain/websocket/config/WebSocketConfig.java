@@ -15,7 +15,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry){
         //local onde o REACT tem que estar conectado para receber mensagens
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("*") //http://localhost:3000
+                .setAllowedOrigins("http://localhost:3000") //http://localhost:3000
                 //ativa o suporte para navegadores antigos
                 .withSockJS();
     }
