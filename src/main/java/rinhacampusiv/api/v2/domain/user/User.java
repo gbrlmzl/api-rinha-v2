@@ -84,6 +84,10 @@ public class User implements UserDetails {
         }
     }
 
+    public void resetPassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
 
     @Override
     public String getPassword() {

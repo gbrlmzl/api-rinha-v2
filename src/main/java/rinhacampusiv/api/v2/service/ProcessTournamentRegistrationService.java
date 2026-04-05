@@ -46,7 +46,6 @@ public class ProcessTournamentRegistrationService {
         validators.forEach(v -> v.validate(registrationData, tournament));
 
 
-        System.out.println(registrationData.toString());
         TeamRegisterData teamData = registrationData.teamData();
         PaymentRegistrationDataMercadoPago paymentData = registrationData.paymentData();
 

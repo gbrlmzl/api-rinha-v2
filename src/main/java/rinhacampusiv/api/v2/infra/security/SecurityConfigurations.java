@@ -51,6 +51,9 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST,"/webhook").permitAll()
                         // Autorizar /ws/** para os cliente que vai se inscrever no websocket
                         .requestMatchers("/ws/**").permitAll()
+                        // Autorizar rotas de recuperação de senha
+                        .requestMatchers(HttpMethod.POST, "/auth/password-reset/request", "/auth/password-reset/confirm").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/auth/password-reset/validate").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
