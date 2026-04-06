@@ -1,7 +1,9 @@
 package rinhacampusiv.api.v2.service;
 
 import com.mercadopago.resources.payment.Payment;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
@@ -14,6 +16,7 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamShieldData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.validators.Validator;
 
@@ -37,12 +40,21 @@ public class ProcessTournamentRegistrationService {
     @Autowired
     private List<Validator> validators;
 
+    @Autowired
+    private TournamentRepository tournamentRepository;
+
     //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
 
-    public GeneratedPaymentData registerTeam(TournamentRegistrationData registrationData,
+    public GeneratedPaymentData registerTeam(Long tournamentId, TournamentRegistrationData registrationData,
                                              MultipartFile teamShieldFile,
-                                             Tournament tournament,
-                                             User captain){
+                                             Authentication authentication) {
+
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
+
+        User captain = (User) authentication.getPrincipal();
+
+
         validators.forEach(v -> v.validate(registrationData, tournament));
 
 
@@ -51,7 +63,7 @@ public class ProcessTournamentRegistrationService {
 
 
         Team team = null;
-        if(teamRepository.existsByNameAndTournamentId(teamData.teamName(), tournament.getId())){
+        if (teamRepository.existsByNameAndTournamentId(teamData.teamName(), tournament.getId())) {
             team = teamRepository.findByNameAndTournamentId(teamData.teamName(), tournament.getId()).get();
         } else {
             String shieldUrl = null;
@@ -68,21 +80,21 @@ public class ProcessTournamentRegistrationService {
         return linkPaymentInTeam(team, paymentData);
     }
 
-    public GeneratedPaymentData linkPaymentInTeam(Team teamToRegister, PaymentRegistrationDataMercadoPago paymentData){
+    public GeneratedPaymentData linkPaymentInTeam(Team teamToRegister, PaymentRegistrationDataMercadoPago paymentData) {
         Optional<Team> teamOptional = teamRepository.findByIdWithPayments(
                 teamToRegister.getId());
 
-        if(teamOptional.isPresent()){
+        if (teamOptional.isPresent()) {
             Team teamEntity = teamOptional.get();
 
             PaymentEntity lastPayment = teamEntity.getPayments().getLast();
-            if(lastPayment.getStatus().equals("pending")){
+            if (lastPayment.getStatus().equals("pending")) {
 
-                if(lastPayment.getExpiresAt().isAfter(OffsetDateTime.now().plusMinutes(10))){
+                if (lastPayment.getExpiresAt().isAfter(OffsetDateTime.now().plusMinutes(10))) {
                     return new GeneratedPaymentData(lastPayment);
                 }
             }
-            if(lastPayment.getStatus().equals("PAGAMENTO REALIZADO")){
+            if (lastPayment.getStatus().equals("PAGAMENTO REALIZADO")) {
                 return new GeneratedPaymentData(lastPayment);
             }
         }
@@ -95,13 +107,13 @@ public class ProcessTournamentRegistrationService {
         return new GeneratedPaymentData(newPayment);
     }
 
-    public PaymentEntity generateNewPayment(Team team, PaymentRegistrationDataMercadoPago paymentData){
+    public PaymentEntity generateNewPayment(Team team, PaymentRegistrationDataMercadoPago paymentData) {
         BigDecimal value = null;
         String payerName = paymentData.nome() + " " + paymentData.sobrenome();
 
-        if(team.getPlayers().size() == 5){
+        if (team.getPlayers().size() == 5) {
             value = new BigDecimal(1);
-        } else{
+        } else {
             value = new BigDecimal(2);
         }
 

@@ -30,10 +30,6 @@ public class TournamentRegistrationController {
     @Autowired
     private ProcessTournamentRegistrationService processTournamentRegistration;
 
-    @Autowired
-    private TournamentRepository tournamentRepository;
-
-
 
     // Controller
     @PostMapping(value = "/{tournamentId}/registrations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -47,13 +43,8 @@ public class TournamentRegistrationController {
         // monta o TournamentRegistrationData internamente
         var registrationData = new TournamentRegistrationData(teamData,paymentData);
 
-        Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
-
-        User captain = (User) authentication.getPrincipal();
-
         GeneratedPaymentData result = processTournamentRegistration.registerTeam(
-                registrationData,teamShield, tournament, captain
+                tournamentId, registrationData,teamShield, authentication
         );
 
         URI uri = URI.create("/payments/" + result.uuid());

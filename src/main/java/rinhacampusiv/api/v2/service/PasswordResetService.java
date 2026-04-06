@@ -44,7 +44,7 @@ public class PasswordResetService {
                 user.getUsername(),
                 resetToken.getToken()
         );
-        System.out.println("Email enviado.");
+
     }
 
     // ─── Etapa 2: validar token (para o frontend verificar antes de mostrar o form) ──

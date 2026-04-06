@@ -54,6 +54,9 @@ public class SecurityConfigurations {
                         // Autorizar rotas de recuperação de senha
                         .requestMatchers(HttpMethod.POST, "/auth/password-reset/request", "/auth/password-reset/confirm").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/auth/password-reset/validate").permitAll()
+                        // Autorizar rotas de validação de conta
+                        .requestMatchers(HttpMethod.GET,  "/auth/activate/validate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/activate", "/auth/activate/resend").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

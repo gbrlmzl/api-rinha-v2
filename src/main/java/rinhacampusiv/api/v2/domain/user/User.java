@@ -60,7 +60,7 @@ public class User implements UserDetails {
     }
 
     public User(RegisterData registerData){
-        this.active = true;
+        this.active = false;
         this.role   = UserRole.USER;
         this.nickname = registerData.email().substring(0, registerData.email().indexOf("@"));;
         this.username = registerData.username();
@@ -75,7 +75,6 @@ public class User implements UserDetails {
         }
 
         if (data.newPassword() != null) {
-            // A validação de currentPassword é feita no controller
             this.password = encoder.encode(data.newPassword());
         }
 
@@ -87,6 +86,11 @@ public class User implements UserDetails {
     public void resetPassword(String encodedPassword) {
         this.password = encodedPassword;
     }
+
+    public void activate(){
+        this.active = true;
+    }
+
 
 
     @Override

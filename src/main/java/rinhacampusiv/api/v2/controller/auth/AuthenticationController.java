@@ -22,6 +22,7 @@ import rinhacampusiv.api.v2.infra.exception.EmailAlreadyExistsException;
 import rinhacampusiv.api.v2.infra.exception.UsernameAlreadyExistsException;
 import rinhacampusiv.api.v2.infra.security.SecurityConfigurations;
 import rinhacampusiv.api.v2.infra.security.TokenService;
+import rinhacampusiv.api.v2.service.UserRegisterService;
 
 import java.util.*;
 
@@ -39,37 +40,39 @@ public class AuthenticationController {
     private TokenService tokenService;
 
     @Autowired
-    private SecurityConfigurations security;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserRegisterService userRegisterService;
+
+
 
 
     @PostMapping("/register")
     @Transactional
-    public ResponseEntity registerAction(@RequestBody @Valid RegisterData data) {
-        if (repository.existsByUsername(data.username())){
-            throw new UsernameAlreadyExistsException();
-        } else if (repository.existsByEmail(data.email())) {
-            throw new EmailAlreadyExistsException();
-        }
+    public ResponseEntity<?> registerAction(@RequestBody @Valid RegisterData data) {
+        //Criar um processUserRegisterService
 
-        String criptPassword = passwordEncoder.encode(data.password());
+        userRegisterService.registerUser(data);
 
-        var registerData = new RegisterData(data.username(), data.email(), criptPassword);
-        var newUser = new User(registerData);
-
-        repository.save(newUser);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "Usuário cadastrado com sucesso"));
+        //Se não disparar nenhuma exceção, retorna uma resposta de sucesso
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "Usuário cadastrado com sucesso." +
+                " Link de confirmação da conta enviado via email."));
 
     }
 
     @PostMapping("/login")
-    public ResponseEntity loginAction(@RequestBody @Valid LoginData data) {
+    public ResponseEntity<?> loginAction(@RequestBody @Valid LoginData data) {
+
+        //Criar UserLoginService
         var authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
         var authentication = manager.authenticate(authenticationToken);
 
-        var accessToken = tokenService.generateToken((User) authentication.getPrincipal());
+        User user = (User) authentication.getPrincipal();
+
+        if (!user.isActive()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Conta não ativada. Verifique seu email."));
+        }
+
+        var accessToken = tokenService.generateToken(user);
         var refreshToken = tokenService.generateRefreshToken((User) authentication.getPrincipal());
 
         int refreshTokenAge = data.keepLoggedIn() ? 30 * 24 * 60 * 60 /* 30 dias */  : 7 * 24 * 60 * 60 /* 7 dias */ ;

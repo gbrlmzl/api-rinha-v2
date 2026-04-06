@@ -99,7 +99,6 @@ public class TratadorDeErros {
 
     @ExceptionHandler(ImgurUploadException.class)
     public void tratarErroUploadImgur(Exception ex){
-        System.out.println(Map.of("error: ", ex.getMessage()));
         //Não deve parar o fluxo de cadastro, apenas avisar que houve um erro no upload do escudo.
     }
 
