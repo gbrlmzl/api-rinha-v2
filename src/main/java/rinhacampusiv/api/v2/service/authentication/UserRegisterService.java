@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.service;
+package rinhacampusiv.api.v2.service.authentication;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +11,7 @@ import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
 import rinhacampusiv.api.v2.infra.exception.EmailAlreadyExistsException;
 import rinhacampusiv.api.v2.infra.exception.UsernameAlreadyExistsException;
+import rinhacampusiv.api.v2.service.EmailService;
 
 @Service
 public class UserRegisterService {

@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators;
+package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
 
 import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class ValidatorSameSchoolId implements Validator{
+public class TournamentTeamRegisterValidatorSameSchoolId implements TournamentTeamRegisterValidator {
     @Override
     public void validate (TournamentRegistrationData data, Tournament tournament){
         List<PlayerRegisterData> players = data.teamData().players();

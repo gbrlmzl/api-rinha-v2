@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators;
+package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

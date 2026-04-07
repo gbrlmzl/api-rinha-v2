@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators;
+package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
 
 import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
@@ -9,19 +9,14 @@ import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 import java.util.List;
 
 @Component
-public class ValidatorExternalPlayersLimit implements Validator {
-
+public class TournamentTeamRegisterValidatorTeamPlayersAmount implements TournamentTeamRegisterValidator {
     @Override
     public void validate(TournamentRegistrationData data, Tournament tournament){
-        int count = 0;
         List<PlayerRegisterData> players = data.teamData().players();
-        for(PlayerRegisterData playerData : players){
-            if(!playerData.externalPlayer()){ //Caso o jogador não seja externo, aumenta a contagem
-                count += 1;
-            }
-        }
-        if(count < 1 ){
-            throw new ValidatorException("A equipe deve possuir ao menos um jogador matriculado na UFPB");
+        if(players.size() > 6){
+            throw new ValidatorException("Quantidade máxima de jogadores: 6");
+        } else if (players.size() < 5) {
+            throw new ValidatorException("Quantidade mínima de jogadores: 5");
         }
     }
 }

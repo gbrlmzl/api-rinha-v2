@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators;
+package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,7 @@ import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 import java.util.List;
 
 @Component
-public class ValidatorPlayerAlreadyAlocated implements Validator {
+public class TournamentTeamRegisterValidatorPlayerAlreadyAlocated implements TournamentTeamRegisterValidator {
 
     @Autowired
     private PlayerRepository playerRepository;

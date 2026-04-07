@@ -9,20 +9,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import rinhacampusiv.api.v2.domain.user.LoginData;
-import rinhacampusiv.api.v2.domain.user.RegisterData;
-import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.domain.user.UserRepository;
-import rinhacampusiv.api.v2.infra.exception.EmailAlreadyExistsException;
-import rinhacampusiv.api.v2.infra.exception.UsernameAlreadyExistsException;
-import rinhacampusiv.api.v2.infra.security.SecurityConfigurations;
+import rinhacampusiv.api.v2.domain.user.*;
 import rinhacampusiv.api.v2.infra.security.TokenService;
-import rinhacampusiv.api.v2.service.UserRegisterService;
+import rinhacampusiv.api.v2.service.UserService;
+import rinhacampusiv.api.v2.service.authentication.UserAuthService;
+import rinhacampusiv.api.v2.service.authentication.UserRegisterService;
 
 import java.util.*;
 
@@ -31,16 +24,13 @@ import java.util.*;
 public class AuthenticationController {
 
     @Autowired
-    private UserRepository repository;
-
-    @Autowired
-    private AuthenticationManager manager;
-
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
     private UserRegisterService userRegisterService;
+
+    @Autowired
+    private UserAuthService userAuthService;
+
+    @Autowired
+    private UserService userService;
 
 
 
@@ -48,55 +38,21 @@ public class AuthenticationController {
     @PostMapping("/register")
     @Transactional
     public ResponseEntity<?> registerAction(@RequestBody @Valid RegisterData data) {
-        //Criar um processUserRegisterService
 
         userRegisterService.registerUser(data);
 
-        //Se não disparar nenhuma exceção, retorna uma resposta de sucesso
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "Usuário cadastrado com sucesso." +
-                " Link de confirmação da conta enviado via email."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "Usuário cadastrado com sucesso.\nLink de confirmação da conta enviado via email."));
 
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginAction(@RequestBody @Valid LoginData data) {
 
-        //Criar UserLoginService
-        var authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
-        var authentication = manager.authenticate(authenticationToken);
-
-        User user = (User) authentication.getPrincipal();
-
-        if (!user.isActive()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Conta não ativada. Verifique seu email."));
-        }
-
-        var accessToken = tokenService.generateToken(user);
-        var refreshToken = tokenService.generateRefreshToken((User) authentication.getPrincipal());
-
-        int refreshTokenAge = data.keepLoggedIn() ? 30 * 24 * 60 * 60 /* 30 dias */  : 7 * 24 * 60 * 60 /* 7 dias */ ;
-        // 3) criar cookie HttpOnly
-        ResponseCookie accessCookie = ResponseCookie.from("JWT", accessToken)
-                .httpOnly(true)
-                .secure(true)             // HTTPS obrigatório em produção
-                .path("/")                // escopo do cookie
-                .maxAge( 15 * 60)      // 15 minutos em segundos
-                .sameSite("Lax")         // ajuda a mitigar CSRF (ajuste conforme seu domínio) -> Funciona com API e Front no mesmo dominio
-                .build();
-
-        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/") //Antes: "/auth/refresh"
-                .maxAge(refreshTokenAge)
-                .sameSite("Lax")
-                .build();
-
+        GeneratedAuthCookies cookies = userAuthService.login(data);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, cookies.accessTokenCookie())
+                .header(HttpHeaders.SET_COOKIE, cookies.refreshTokenCookie())
                 .body(Map.of("status", "ok")); // opcionalmente devolve algo curto
 
     }
@@ -104,55 +60,21 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
 
-        // Sobrescreve os cookies com maxAge=0, forçando o navegador a deletá-los
-        ResponseCookie clearAccess = ResponseCookie.from("JWT", "")
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)           // instrui o navegador a apagar imediatamente
-                .sameSite("Lax")
-                .build();
-
-        ResponseCookie clearRefresh = ResponseCookie.from("REFRESH", "")
-                .httpOnly(true)
-                .secure(true)
-                .path("/")  // deve ser o mesmo path do cookie original
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
+        GeneratedAuthCookies cleanCookies = userAuthService.logout();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, clearAccess.toString())
-                .header(HttpHeaders.SET_COOKIE, clearRefresh.toString())
+                .header(HttpHeaders.SET_COOKIE, cleanCookies.accessTokenCookie())
+                .header(HttpHeaders.SET_COOKIE, cleanCookies.refreshTokenCookie())
                 .body(Map.of("status", "ok"));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request) {
 
-        String refreshToken = Arrays.stream(request.getCookies())
-                .filter(c -> "REFRESH".equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Refresh token não encontrado"));
-
-        String subject = tokenService.getSubjectFromRefreshToken(refreshToken);
-        String username = tokenService.getClaimUsernameFromRefreshToken(refreshToken);
-
-
-
-        String newAccessToken = tokenService.generateToken(subject, username); //o metodo generateToken espera um User usuario como parametro
-
-        ResponseCookie newAccessCookie = ResponseCookie.from("JWT", newAccessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(15 * 60) //15 minutos
-                .sameSite("Lax")
-                .build();
+        String newAccessCookie = userAuthService.refresh(request);
 
         return ResponseEntity.ok()
-                .header("Set-Cookie", newAccessCookie.toString())
+                .header("Set-Cookie", newAccessCookie)
                 .body("Token renovado");
     }
 
@@ -160,49 +82,18 @@ public class AuthenticationController {
 
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "no_token"));
-        }
+    public ResponseEntity<?> me (HttpServletRequest request) {
 
-        String accessToken = Arrays.stream(request.getCookies())
-                .filter(c -> "JWT".equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
+        User user = userService.getAuthenticatedUser(request);
 
-        if (accessToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "no_token"));
-        }
+        return ResponseEntity.ok(Map.of(
+                "username",   user.getUsername(),
+                "nickname",   user.getNickname(),
+                "email",      user.getEmail(),
+                "profilePic", user.getProfilePic() != null ? user.getProfilePic() : ""
+        ));
 
-        try {
-            String subject = tokenService.getSubject(accessToken);
-            Optional<User> userOpt = repository.findById(Long.parseLong(subject));
 
-            if (userOpt.isPresent()) {
-                var user = userOpt.get();
-                return ResponseEntity.ok(Map.of(
-                        "username",   user.getUsername(),
-                        "nickname",   user.getNickname(),
-                        "email",      user.getEmail(),
-                        "profilePic", user.getProfilePic() != null ? user.getProfilePic() : ""
-                ));
-            }
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "user_not_found"));
-
-        } catch (TokenExpiredException e) {
-            // Expirado → cliente deve tentar /auth/refresh
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "token_expired"));
-
-        } catch (Exception e) {
-            // Assinatura inválida, malformado, etc → não adianta fazer refresh
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "token_invalid"));
-        }
     }
 
 

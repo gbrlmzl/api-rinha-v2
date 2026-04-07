@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators;
+package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -8,7 +8,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 
 @Component
-public class ValidatorTeamsNumberInTournament implements Validator {
+public class TournamentTeamRegisterValidatorTeamsNumberInTournament implements TournamentTeamRegisterValidator {
     @Autowired
     TeamRepository teamRepository;
 

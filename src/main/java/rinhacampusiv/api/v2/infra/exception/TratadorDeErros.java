@@ -1,5 +1,6 @@
 package rinhacampusiv.api.v2.infra.exception;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -81,25 +82,49 @@ public class TratadorDeErros {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    // Fallback — qualquer erro não tratado
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> tratarErroGenerico(Exception ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Erro interno no servidor"));
-    }
+
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<?> tratarUsernameInexistente() {
+    public ResponseEntity<?> tratarUsernameInexistente(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Credenciais inválidas"));
+                .body(Map.of("error", ex.getMessage()));
 
     }
 
     @ExceptionHandler(ImgurUploadException.class)
     public void tratarErroUploadImgur(Exception ex){
         //Não deve parar o fluxo de cadastro, apenas avisar que houve um erro no upload do escudo.
+    }
+
+    @ExceptionHandler(AccountNotActivatedException.class)
+    public ResponseEntity<?> tratarContaNaoAtivada(Exception ex){
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+
+    }
+
+    @ExceptionHandler(UserNotAuthenticatedException.class)
+    public ResponseEntity<?> tratarUsuarioNaoAutenticado(Exception ex){
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<?> tratarTokenExpirado(){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "token_expired"));
+
+    }
+
+    // Fallback — qualquer erro não tratado
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> tratarErroGenerico(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Erro interno no servidor"));
     }
 
     private record DadosErroValidacao(String campo, String mensagem) {

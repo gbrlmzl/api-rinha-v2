@@ -9,16 +9,14 @@ import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
-import rinhacampusiv.api.v2.domain.tournaments.teams.TeamShieldData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.validators.Validator;
+import rinhacampusiv.api.v2.validators.tournamentTeamRegister.TournamentTeamRegisterValidator;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -38,7 +36,7 @@ public class ProcessTournamentRegistrationService {
     private TeamRepository teamRepository;
 
     @Autowired
-    private List<Validator> validators;
+    private List<TournamentTeamRegisterValidator> tournamentTeamRegisterValidators;
 
     @Autowired
     private TournamentRepository tournamentRepository;
@@ -55,7 +53,7 @@ public class ProcessTournamentRegistrationService {
         User captain = (User) authentication.getPrincipal();
 
 
-        validators.forEach(v -> v.validate(registrationData, tournament));
+        tournamentTeamRegisterValidators.forEach(v -> v.validate(registrationData, tournament));
 
 
         TeamRegisterData teamData = registrationData.teamData();
@@ -111,6 +109,8 @@ public class ProcessTournamentRegistrationService {
         BigDecimal value = null;
         String payerName = paymentData.nome() + " " + paymentData.sobrenome();
 
+
+        //Criar metodo para gerenciar o valor do pagamento
         if (team.getPlayers().size() == 5) {
             value = new BigDecimal(1);
         } else {

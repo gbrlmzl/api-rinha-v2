@@ -17,7 +17,7 @@ public class PasswordResetController {
     @Autowired
     private PasswordResetService passwordResetService;
 
-    // POST /auth/password-reset/request
+
     // Recebe o username e envia o email
     @PostMapping("/password-reset/request")
     public ResponseEntity<?> requestReset(
@@ -50,6 +50,7 @@ public class PasswordResetController {
     @PostMapping("/password-reset/confirm")
     public ResponseEntity<?> confirmReset(
             @RequestBody @Valid NewPasswordRequest request) {
+
         try {
             passwordResetService.resetPassword(request.token(), request.newPassword());
             return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
