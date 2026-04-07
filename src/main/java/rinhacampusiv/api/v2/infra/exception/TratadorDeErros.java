@@ -119,6 +119,13 @@ public class TratadorDeErros {
 
     }
 
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<?> tratarTokenInvalido(Exception ex){
+        String message = !ex.getMessage().isBlank() ? ex.getMessage()  : "invalid_token";
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", message));
+    }
+
     // Fallback — qualquer erro não tratado
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> tratarErroGenerico(Exception ex) {

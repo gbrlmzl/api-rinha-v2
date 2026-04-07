@@ -51,13 +51,9 @@ public class PasswordResetController {
     public ResponseEntity<?> confirmReset(
             @RequestBody @Valid NewPasswordRequest request) {
 
-        try {
-            passwordResetService.resetPassword(request.token(), request.newPassword());
-            return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
+        passwordResetService.resetPassword(request.token(), request.newPassword());
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
+
     }
 }

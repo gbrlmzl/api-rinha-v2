@@ -8,6 +8,7 @@ import rinhacampusiv.api.v2.domain.passwordReset.PasswordResetToken;
 import rinhacampusiv.api.v2.domain.passwordReset.PasswordResetTokenRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
+import rinhacampusiv.api.v2.infra.exception.InvalidTokenException;
 
 @Service
 public class PasswordResetService {
@@ -58,10 +59,10 @@ public class PasswordResetService {
     @Transactional
     public void resetPassword(String token, String newPassword) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Token inválido"));
+                .orElseThrow(() -> new InvalidTokenException("Token inválido"));
 
         if (!resetToken.isValid()) {
-            throw new IllegalArgumentException(
+            throw new InvalidTokenException(
                     resetToken.isExpired() ? "Token expirado" : "Token já utilizado"
             );
         }
