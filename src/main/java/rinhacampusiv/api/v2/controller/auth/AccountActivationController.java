@@ -33,19 +33,18 @@ public class AccountActivationController {
     // POST /auth/activate?token=xxx
     @PostMapping("/activate")
     public ResponseEntity<?> activate(@RequestParam @Valid ActivateRequestDTO request) {
-        try {
-            activationService.activateAccount(request.token());
-            return ResponseEntity.ok(Map.of("message", "Conta ativada com sucesso"));
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", e.getMessage()));
-        }
+        activationService.activateAccount(request.token());
+
+        return ResponseEntity.ok(Map.of("message", "Conta ativada com sucesso"));
+
+
     }
 
     // POST /auth/activate/resend — reenvio para token expirado
     @PostMapping("/activate/resend")
     public ResponseEntity<?> resend(@RequestBody @Valid ResendRequestDTO request) {
+
         activationService.resendActivationEmail(request.username());
 
         // Sempre retorna 200 — não revela se o username existe ou se já está ativo
@@ -53,8 +52,6 @@ public class AccountActivationController {
                 "message", "Se a conta existir e não estiver ativa, um novo email será enviado"
         ));
     }
-
-
 
 
 }

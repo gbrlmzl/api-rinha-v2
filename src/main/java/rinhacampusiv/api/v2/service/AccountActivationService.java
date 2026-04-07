@@ -7,6 +7,7 @@ import rinhacampusiv.api.v2.domain.activation.AccountActivationToken;
 import rinhacampusiv.api.v2.domain.activation.AccountActivationTokenRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
+import rinhacampusiv.api.v2.infra.exception.InvalidTokenException;
 
 @Service
 public class AccountActivationService {
@@ -29,10 +30,10 @@ public class AccountActivationService {
     @Transactional
     public void activateAccount(String token) {
         AccountActivationToken activationToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Token inválido"));
+                .orElseThrow(() -> new InvalidTokenException("Token inválido"));
 
         if (!activationToken.isValid()) {
-            throw new IllegalArgumentException(
+            throw new InvalidTokenException(
                     activationToken.isExpired() ? "Token expirado" : "Token já utilizado"
             );
         }
