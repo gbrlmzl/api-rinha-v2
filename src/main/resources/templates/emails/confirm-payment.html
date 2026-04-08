@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Inscrição Confirmada — Rinha da UFPB</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; background-color: #0A122A;
+             font-family: Arial, Helvetica, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+<!-- Wrapper externo: garante fundo em clientes que ignoram o body -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background-color: #0A122A; border-collapse: collapse;">
+    <tr>
+        <td align="center" style="padding: 0;">
+
+            <!-- Container central com largura fixa -->
+            <table role="presentation"
+                   style="width: 100%; border-collapse: collapse; background-color: #0A122A;">
+
+                <!-- Header -->
+                <tr>
+                    <td
+                        style="padding: 48px 24px 40px 24px;
+                                   border-bottom: 2px solid #FF00EE; align-content:  center; text-align: center;">
+                        <h1 style="margin: 0;
+                                       color: #ffffff;
+                                       font-family: Arial, Helvetica, sans-serif;
+                                       font-size: 36px;
+                                       font-weight: 700;
+                                       letter-spacing: 1px;
+                                       line-height: 1.2;">
+                            Rinha da UFPB
+                        </h1>
+                    </td>
+                </tr>
+
+                <!-- Parabéns -->
+                <tr>
+                    <td align="center" style="padding: 36px 24px 0 24px;">
+                        <p style="margin: 0;
+                                      color: #ffffff;
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      font-size: 24px;
+                                      font-weight: 700;
+                                      text-align: center;
+                                      line-height: 1.3;">
+                            Parabéns, <span th:text="${teamName}">nomeDaEquipe</span>!
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Escudo da equipe -->
+                <tr>
+                    <td align="center" style="padding: 28px 24px 0 24px;">
+
+                        <!-- Com escudo -->
+                        <img th:if="${shieldUrl != null and !#strings.isEmpty(shieldUrl)}"
+                             th:src="${shieldUrl}"
+                             alt="Escudo da equipe"
+                             width="200"
+                             height="200"
+                             style="display: block;
+                                        width: 200px;
+                                        height: 200px;
+                                        object-fit: cover;
+                                        border: 0;
+                                        outline: none;
+                                        text-decoration: none;
+                                        -ms-interpolation-mode: bicubic;" />
+
+                        <!-- Fallback sem escudo -->
+                        <table th:if="${shieldUrl == null or #strings.isEmpty(shieldUrl)}"
+                               role="presentation" cellpadding="0" cellspacing="0" border="0"
+                               style="width: 200px;
+                                          border-collapse: collapse;
+                                          background-color: #1a2e5a;
+                                          border: 1px solid #01F7FF;">
+                            <tr>
+                                <td align="center" valign="middle"
+                                    height="200"
+                                    style="color: #aaaaaa;
+                                               font-family: Arial, Helvetica, sans-serif;
+                                               font-size: 14px;
+                                               padding: 16px;
+                                               height: 200px;">
+                                    Sem escudo
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Mensagem de confirmação -->
+                <tr>
+                    <td align="center" style="padding: 28px 40px 0 40px;">
+                        <p style="margin: 0;
+                                      color: #ffffff;
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      font-size: 18px;
+                                      font-weight: 400;
+                                      text-align: center;
+                                      line-height: 1.6;">
+                            Sua inscrição para a
+                            <strong th:text="${tournamentName}">nomeDoTorneio</strong>
+                            foi confirmada!
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Card com data do torneio -->
+                <tr>
+                    <td align="center" style="padding: 28px 40px 40px 40px;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+                               width="420"
+                               style="width: 420px;
+                                          border-collapse: collapse;
+                                          background-color: #11204C;
+                                          border: 1px solid #01F7FF;">
+                            <tr>
+                                <td align="center" style="padding: 20px 24px;">
+                                    <p style="margin: 0;
+                                                  color: #ffffff;
+                                                  font-family: Arial, Helvetica, sans-serif;
+                                                  font-size: 14px;
+                                                  font-weight: 700;
+                                                  text-align: center;
+                                                  line-height: 1.6;">
+                                        Treinem bastante, pois os campos da justiça
+                                        os aguardam no dia
+                                        <strong th:text="${tournamentStartDate}">dataComeçoTorneio</strong>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td align="center"
+                        style="padding: 20px 24px;
+                                   border-top: 1px solid rgba(255,255,255,0.1);">
+                        <p style="margin: 0;
+                                      color: #777777;
+                                      font-family: Arial, Helvetica, sans-serif;
+                                      font-size: 11px;
+                                      text-align: center;
+                                      line-height: 1.5;">
+                            Rinha Campus IV — Torneio de Games Universitário
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+            <!-- /Container central -->
+
+        </td>
+    </tr>
+</table>
+<!-- /Wrapper externo -->
+
+</body>
+</html>

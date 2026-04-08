@@ -29,12 +29,17 @@ public class VerifyEfetuedPaymentService {
     @Autowired
     private TeamRepository teamRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     public void verifyPayment(Payment paymentData) {
         String mercadoPagoPaymentId = String.valueOf(paymentData.getId());
-
         PaymentEntity payment = paymentRepository
                 .findByMercadoPagoId(mercadoPagoPaymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Pagamento não encontrado"));
+
+
+
 
         if (paymentData.getStatus().equalsIgnoreCase("approved") &&
                 paymentData.getStatusDetail().equalsIgnoreCase("accredited")) {
@@ -44,6 +49,7 @@ public class VerifyEfetuedPaymentService {
             payment.setPaidAt(paymentData.getDateApproved());
 
             Team paymentTeam = payment.getTeam();
+
             if (paymentTeam == null) {
                 throw new TeamWithoutPaymentException("Equipe sem pagamento gerado");
             }
@@ -51,6 +57,8 @@ public class VerifyEfetuedPaymentService {
 
             paymentRepository.save(payment);
             teamRepository.save(paymentTeam);
+
+
 
             WebSocketPaymentData webSocketMessageData = new WebSocketPaymentData(
                     payment, "Pagamento confirmado com sucesso"
@@ -61,6 +69,14 @@ public class VerifyEfetuedPaymentService {
                     "/topic/payment/" + webSocketMessageData.uuid(),
                     payload
             );
+
+
+
+
+            //enviar email de confirmação de pagamento -> Não deve esperar.
+
+            emailService.sendPaymentConfirmationEmail(paymentTeam);
+
 
         } else {
             Map<String, String> payload = Map.of("status", payment.getStatus());

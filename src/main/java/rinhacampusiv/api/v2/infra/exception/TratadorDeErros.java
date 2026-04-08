@@ -129,6 +129,14 @@ public class TratadorDeErros {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(SendEmailException.class)
+    public void tratarErroNoEnvioDoEmail(){
+            //O fluxo não deve ser interrompido.
+        System.out.println("Houve um erro ao enviar o email.");
+        //Debug
+        }
+
+
 
 
     // 404 genérico (JPA)
@@ -148,11 +156,16 @@ public class TratadorDeErros {
                 .body(Map.of("error", "Erro interno no servidor"));
     }
 
+
     private record DadosErroValidacao(String campo, String mensagem) {
         public DadosErroValidacao(FieldError erro) {
             this(erro.getField(), erro.getDefaultMessage());
         }
     }
+
 }
+
+
+
 
 
