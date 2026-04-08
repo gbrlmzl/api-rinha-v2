@@ -61,13 +61,18 @@ public class ProcessTournamentRegistrationService {
 
 
         Team team = null;
+
         if (teamRepository.existsByNameAndTournamentId(teamData.teamName(), tournament.getId())) {
             team = teamRepository.findByNameAndTournamentId(teamData.teamName(), tournament.getId()).get();
+
         } else {
+
             String shieldUrl = null;
+
             if (teamShieldFile != null) {
+                //Upload do escudo via API do IMGUR
                 shieldUrl = imgurService.uploadShield(teamShieldFile, teamData.teamName());
-                System.out.println(shieldUrl);
+
             }
 
 
@@ -106,22 +111,30 @@ public class ProcessTournamentRegistrationService {
     }
 
     public PaymentEntity generateNewPayment(Team team, PaymentRegistrationDataMercadoPago paymentData) {
-        BigDecimal value = null;
+
         String payerName = paymentData.nome() + " " + paymentData.sobrenome();
 
 
-        //Criar metodo para gerenciar o valor do pagamento
-        if (team.getPlayers().size() == 5) {
-            value = new BigDecimal(1);
-        } else {
-            value = new BigDecimal(2);
-        }
+
+        BigDecimal value = calculateRegistatrionPrice(team.getPlayers().size());
 
 
         Payment generatedPayment = emitPaymentService.emitPayment(paymentData, value);
 
         return new PaymentEntity(generatedPayment, payerName);
 
+
+    }
+
+    private BigDecimal calculateRegistatrionPrice(Integer playersAmount){
+        BigDecimal value;
+        if (playersAmount == 5) {
+            value = new BigDecimal(5);
+        } else {
+            value = new BigDecimal(6);
+        }
+
+        return value;
 
     }
 

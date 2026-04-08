@@ -14,17 +14,14 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 
 import java.util.Map;
 
 @RestControllerAdvice
 public class TratadorDeErros {
 
-    // 404 genérico (JPA)
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<?> tratarErro404() {
-        return ResponseEntity.notFound().build();
-    }
+
 
     // Validação de campos (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -123,6 +120,23 @@ public class TratadorDeErros {
     public ResponseEntity<?> tratarTokenInvalido(Exception ex){
         String message = !ex.getMessage().isBlank() ? ex.getMessage()  : "invalid_token";
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", message));
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<?> tratarPagamentoNaoEncontrado(Exception ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+
+
+    // 404 genérico (JPA)
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> tratarErro404(Exception ex) {
+        String message = !ex.getMessage().isBlank() ? ex.getMessage() : "";
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", message));
     }
 

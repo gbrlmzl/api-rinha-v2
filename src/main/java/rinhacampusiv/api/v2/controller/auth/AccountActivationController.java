@@ -19,8 +19,8 @@ public class AccountActivationController {
 
     // GET /auth/activate/validate?token=xxx
     @GetMapping("/activate/validate")
-    public ResponseEntity<?> validateToken(@RequestParam @Valid ActivateRequestDTO request) {
-        boolean valid = activationService.validateToken(request.token());
+    public ResponseEntity<?> validateToken(@RequestParam String token) {
+        boolean valid = activationService.validateToken(token);
 
         if (!valid) {
             return ResponseEntity.badRequest()
@@ -32,9 +32,9 @@ public class AccountActivationController {
 
     // POST /auth/activate?token=xxx
     @PostMapping("/activate")
-    public ResponseEntity<?> activate(@RequestParam @Valid ActivateRequestDTO request) {
+    public ResponseEntity<?> activate(@RequestParam String token) {
 
-        activationService.activateAccount(request.token());
+        activationService.activateAccount(token);
 
         return ResponseEntity.ok(Map.of("message", "Conta ativada com sucesso"));
 

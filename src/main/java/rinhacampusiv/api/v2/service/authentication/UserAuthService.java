@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
 import rinhacampusiv.api.v2.domain.user.LoginData;
@@ -19,8 +20,6 @@ import java.util.Arrays;
 @Service
 public class UserAuthService {
 
-    @Autowired
-    private AuthenticationManager manager;
 
     @Autowired
     private TokenService tokenService;
@@ -28,8 +27,11 @@ public class UserAuthService {
     @Autowired
     private CookieService cookieService;
 
+    @Autowired
+    private AuthenticationManager manager;
 
-    public GeneratedAuthCookies login(LoginData data){
+
+    public GeneratedAuthCookies login(LoginData data) {
         //Criar UserLoginService
         var authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
         var authentication = manager.authenticate(authenticationToken);
@@ -41,8 +43,7 @@ public class UserAuthService {
         }
 
         var accessToken = tokenService.generateToken(user);
-        var refreshToken = tokenService.generateRefreshToken((User) authentication.getPrincipal());
-
+        var refreshToken = tokenService.generateRefreshToken(user);
 
 
         GeneratedAuthCookies authTokensCookies = cookieService.generateCookies(accessToken, refreshToken, data.keepLoggedIn());
@@ -51,14 +52,13 @@ public class UserAuthService {
 
     }
 
-    public GeneratedAuthCookies logout(){
+    public GeneratedAuthCookies logout() {
 
         GeneratedAuthCookies cleanCookies = cookieService.generateCleanCookies();
-
         return cleanCookies;
     }
 
-    public String refresh(HttpServletRequest request){
+    public String refresh(HttpServletRequest request) {
         String refreshToken = Arrays.stream(request.getCookies())
                 .filter(c -> "REFRESH".equals(c.getName()))
                 .map(Cookie::getValue)
@@ -67,7 +67,6 @@ public class UserAuthService {
 
         String subject = tokenService.getSubjectFromRefreshToken(refreshToken);
         String username = tokenService.getClaimUsernameFromRefreshToken(refreshToken);
-
 
 
         String newAccessToken = tokenService.generateToken(subject, username); //o metodo generateToken espera um User usuario como parametro

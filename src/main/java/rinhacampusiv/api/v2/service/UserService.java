@@ -6,9 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.user.User;
+import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
 import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
 import rinhacampusiv.api.v2.infra.security.TokenService;
@@ -27,7 +29,7 @@ public class UserService {
     private UserRepository repository;
 
 
-    public User getAuthenticatedUser(HttpServletRequest request) {
+    public UserEssentialsDetails getAuthenticatedUser(HttpServletRequest request) {
 
         if (request.getCookies() == null) {
             throw new UserNotAuthenticatedException("no_token"); //padrão de mensagem necessário para o frontend implementar o silent refresh
@@ -47,9 +49,10 @@ public class UserService {
         String subject = tokenService.getSubject(accessToken);
         Optional<User> userOpt = repository.findById(Long.parseLong(subject));
 
+
         if (userOpt.isPresent()) {
 
-            return userOpt.get();
+            return new UserEssentialsDetails(userOpt.get());
 
         } else {
 

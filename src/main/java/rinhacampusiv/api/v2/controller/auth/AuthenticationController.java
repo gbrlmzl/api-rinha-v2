@@ -1,18 +1,16 @@
 package rinhacampusiv.api.v2.controller.auth;
 
-import com.auth0.jwt.exceptions.TokenExpiredException;
-import jakarta.servlet.http.Cookie;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.user.*;
-import rinhacampusiv.api.v2.infra.security.TokenService;
+
 import rinhacampusiv.api.v2.service.UserService;
 import rinhacampusiv.api.v2.service.authentication.UserAuthService;
 import rinhacampusiv.api.v2.service.authentication.UserRegisterService;
@@ -40,7 +38,6 @@ public class AuthenticationController {
     public ResponseEntity<?> registerAction(@RequestBody @Valid RegisterData data) {
 
         userRegisterService.registerUser(data);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "Usuário cadastrado com sucesso.\nLink de confirmação da conta enviado via email."));
 
     }
@@ -80,22 +77,18 @@ public class AuthenticationController {
 
 
 
-
     @GetMapping("/me")
     public ResponseEntity<?> me (HttpServletRequest request) {
 
-        User user = userService.getAuthenticatedUser(request);
+        UserEssentialsDetails user = userService.getAuthenticatedUser(request);
 
         return ResponseEntity.ok(Map.of(
-                "username",   user.getUsername(),
-                "nickname",   user.getNickname(),
-                "email",      user.getEmail(),
-                "profilePic", user.getProfilePic() != null ? user.getProfilePic() : ""
+                "username",   user.username(),
+                "nickname",   user.nickname(),
+                "email",      user.email(),
+                "profilePic", user.profilePic() != null ? user.profilePic() : ""
         ));
 
-
     }
-
-
 
 }

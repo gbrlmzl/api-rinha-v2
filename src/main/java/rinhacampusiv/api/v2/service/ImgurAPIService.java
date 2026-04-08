@@ -59,15 +59,17 @@ public class ImgurAPIService {
             boolean success = root.path("success").asBoolean(false);
             if (!success) {
                 String errorMsg = root.path("data").path("error").asText("Erro desconhecido");
-                throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
+                //throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
+                return null;
             }
 
             return root.path("data").path("link").asText();
 
         } catch (ImgurUploadException e) {
-            throw e; // re-lança sem embrulhar
+            //Regra de negócio: O fluxo de inscrição não deve ser interrompido por erro ao fazer o upload do escudo.
+            return null;
         } catch (Exception e) {
-            throw new ImgurUploadException("Erro ao fazer upload do escudo para o Imgur", e);
+            return null;
         }
     }
 

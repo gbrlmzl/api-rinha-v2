@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.controller.tournaments;
+package rinhacampusiv.api.v2.controller.payments;
 
 
 import com.mercadopago.resources.payment.Payment;
@@ -13,7 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/webhook")
-public class paymentNotificationController {
+public class PaymentNotificationController {
 
     @Autowired
     private VerifyEfetuedPaymentService paymentChecker;
@@ -46,7 +46,12 @@ public class paymentNotificationController {
             return ResponseEntity.ok().build();
         }
 
-        Payment payment = mercadoPagoService.findPayment(paymentId);
+        Payment payment = mercadoPagoService.findPayment(paymentId, true);
+
+        if(payment == null){
+            //payment não encontrado, apenas retorna um ok para o mercado pago parar de disparar webhook
+            return ResponseEntity.ok().build();
+        }
 
         System.out.println("[Webhook MP] Status: " + payment.getStatus());
 

@@ -48,6 +48,7 @@ public class TournamentRegistrationController {
         );
 
         URI uri = URI.create("/payments/" + result.uuid());
+
         return ResponseEntity.created(uri).body(result);
     }
 

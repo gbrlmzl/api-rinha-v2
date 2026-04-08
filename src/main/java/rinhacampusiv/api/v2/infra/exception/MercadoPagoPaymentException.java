@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public class MercadoPagoPaymentException extends RuntimeException {
 
-    private final int statusCode;
+    private final Integer statusCode;
     private final String detailedError;
 
-    public MercadoPagoPaymentException(String message, int statusCode, String detailedError) {
+    public MercadoPagoPaymentException(String message, Integer statusCode, String detailedError) {
         super(message + " " + detailedError);
         this.statusCode = statusCode;
         this.detailedError = detailedError;

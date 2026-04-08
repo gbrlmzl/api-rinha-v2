@@ -7,6 +7,7 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 
 @Service
 public class MercadoPagoService {
@@ -29,7 +30,18 @@ public class MercadoPagoService {
             init();
             return paymentClient.get(Long.valueOf(mercadoPagoId));
         } catch (MPException | MPApiException e){
-            throw new RuntimeException("Erro ao consultar pagamento: " + e.getMessage());
+            throw new PaymentNotFoundException("Erro ao consultar pagamento: " + e.getMessage());
+            //MercadoPagoPaymentException
+        }
+    }
+
+    public Payment findPayment(String mercadoPagoId, boolean isWebHook){
+        try{
+            init();
+            return paymentClient.get(Long.valueOf(mercadoPagoId));
+        } catch (MPException | MPApiException e){
+            //No caso do webHook, não deve lançar exceção, apenas retornar null.
+            return null;
         }
     }
 }
