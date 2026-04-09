@@ -16,6 +16,7 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.user.User;
+import rinhacampusiv.api.v2.infra.exception.TournamentNotExistsException;
 import rinhacampusiv.api.v2.validators.tournamentTeamRegister.TournamentTeamRegisterValidator;
 
 import java.math.BigDecimal;
@@ -48,7 +49,7 @@ public class ProcessTournamentRegistrationService {
                                              Authentication authentication) {
 
         Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
+                .orElseThrow(() -> new TournamentNotExistsException("Torneio não encontrado"));
 
         User captain = (User) authentication.getPrincipal();
 

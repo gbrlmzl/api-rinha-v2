@@ -32,13 +32,11 @@ public class PaymentNotificationController {
 
         // Formato JSON (novo)
         if (body != null && body.data() != null) {
-            System.out.println("[Webhook MP] JSON recebido: " + body.action());
             paymentId = body.data().id();
         }
 
         //Formato query param (legado)
         else if (params.containsKey("id")) {
-            System.out.println("[Webhook MP] Query recebido");
             paymentId = params.get("id");
         }
 

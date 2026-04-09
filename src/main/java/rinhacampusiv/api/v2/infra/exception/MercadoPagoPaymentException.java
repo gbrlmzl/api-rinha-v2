@@ -13,4 +13,9 @@ public class MercadoPagoPaymentException extends RuntimeException {
         this.statusCode = statusCode;
         this.detailedError = detailedError;
     }
+    public MercadoPagoPaymentException(String message) {
+        super(message);
+        this.statusCode = null;
+        this.detailedError = null;
+    }
 }

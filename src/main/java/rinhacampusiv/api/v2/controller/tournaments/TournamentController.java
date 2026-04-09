@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.*;
+import org.springframework.http.HttpStatus;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -17,6 +19,9 @@ public class TournamentController {
 
     @Autowired
     TournamentRepository tournamentRepository;
+
+    @Autowired
+    TeamRepository teamRepository;
 
     @PostMapping
     @Transactional
@@ -55,5 +60,19 @@ public class TournamentController {
                 .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
 
         return ResponseEntity.ok(new TournamentDetailData(tournament));
+    }
+
+    @GetMapping("/{tournamentId}/teams/check-name")
+    public ResponseEntity<Void> checkTeamName(
+            @PathVariable Long tournamentId,
+            @RequestParam String name) {
+
+        String cleanedName = name.trim();
+
+        Boolean exists = teamRepository.existsByNameIgnoreCaseAndTournamentId(cleanedName, tournamentId);
+
+        return exists
+                ? ResponseEntity.status(HttpStatus.CONFLICT).build()
+                : ResponseEntity.noContent().build();
     }
 }

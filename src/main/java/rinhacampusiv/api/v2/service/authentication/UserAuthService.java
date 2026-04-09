@@ -12,6 +12,7 @@ import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
 import rinhacampusiv.api.v2.domain.user.LoginData;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.AccountNotActivatedException;
+import rinhacampusiv.api.v2.infra.exception.RefreshTokenNotFoundException;
 import rinhacampusiv.api.v2.infra.security.TokenService;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class UserAuthService {
 
 
     public GeneratedAuthCookies login(LoginData data) {
-        //Criar UserLoginService
+
         var authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
         var authentication = manager.authenticate(authenticationToken);
 
@@ -63,13 +64,13 @@ public class UserAuthService {
                 .filter(c -> "REFRESH".equals(c.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Refresh token não encontrado"));
+                .orElseThrow(() -> new RefreshTokenNotFoundException("Refresh token não encontrado"));
 
         String subject = tokenService.getSubjectFromRefreshToken(refreshToken);
         String username = tokenService.getClaimUsernameFromRefreshToken(refreshToken);
 
 
-        String newAccessToken = tokenService.generateToken(subject, username); //o metodo generateToken espera um User usuario como parametro
+        String newAccessToken = tokenService.generateToken(subject, username);
 
         ResponseCookie newAccessCookie = ResponseCookie.from("JWT", newAccessToken)
                 .httpOnly(true)

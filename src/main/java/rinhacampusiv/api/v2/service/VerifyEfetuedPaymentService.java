@@ -70,11 +70,7 @@ public class VerifyEfetuedPaymentService {
                     payload
             );
 
-
-
-
             //enviar email de confirmação de pagamento -> Não deve esperar.
-
             emailService.sendPaymentConfirmationEmail(paymentTeam);
 
 

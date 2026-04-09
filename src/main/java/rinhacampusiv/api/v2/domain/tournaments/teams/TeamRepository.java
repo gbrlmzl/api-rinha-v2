@@ -21,6 +21,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     // Busca equipe pelo nome dentro de um torneio específico
     Optional<Team> findByNameAndTournamentId(String name, Long tournamentId);
 
+    Boolean existsByNameIgnoreCaseAndTournamentId(String name, Long tournamentId);
     // Busca equipe com pagamentos já carregados — evita N+1 no fluxo de pagamento
     @Query("SELECT t FROM Team t LEFT JOIN FETCH t.payments WHERE t.id = :id")
     Optional<Team> findByIdWithPayments(@Param("id") Long id);

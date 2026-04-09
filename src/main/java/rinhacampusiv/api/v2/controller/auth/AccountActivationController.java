@@ -33,7 +33,6 @@ public class AccountActivationController {
     // POST /auth/activate?token=xxx
     @PostMapping("/activate")
     public ResponseEntity<?> activate(@RequestParam String token) {
-
         activationService.activateAccount(token);
 
         return ResponseEntity.ok(Map.of("message", "Conta ativada com sucesso"));

@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.payments.TeamWithoutPaymentException;
 
 import java.util.Map;
 
@@ -23,12 +24,12 @@ public class TratadorDeErros {
 
 
 
-    // Validação de campos (@Valid)
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> tratarErro400(MethodArgumentNotValidException ex) {
+    public ResponseEntity<?> tratarErroDadosInvalidos(MethodArgumentNotValidException ex) {
         var erros = ex.getFieldErrors();
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY) // 422 — dados recebidos mas inválidos
+                .status(HttpStatus.BAD_REQUEST)  // 400 — campos inválidos
                 .body(erros.stream().map(DadosErroValidacao::new).toList());
     }
 
@@ -36,7 +37,7 @@ public class TratadorDeErros {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> tratarErroBodyInvalido() {
         return ResponseEntity
-                .badRequest()
+                .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "Corpo da requisição inválido ou ausente"));
     }
 
@@ -75,7 +76,7 @@ public class TratadorDeErros {
     @ExceptionHandler(ValidatorException.class)
     public ResponseEntity<?> tratarErroDeValidacao(Exception ex){
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
                 .body(Map.of("error", ex.getMessage()));
     }
 
@@ -97,7 +98,7 @@ public class TratadorDeErros {
     @ExceptionHandler(AccountNotActivatedException.class)
     public ResponseEntity<?> tratarContaNaoAtivada(Exception ex){
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
+                .status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", ex.getMessage()));
 
     }
@@ -125,7 +126,7 @@ public class TratadorDeErros {
 
     @ExceptionHandler(PaymentNotFoundException.class)
     public ResponseEntity<?> tratarPagamentoNaoEncontrado(Exception ex){
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
 
@@ -137,8 +138,32 @@ public class TratadorDeErros {
         }
 
 
+    @ExceptionHandler(RefreshTokenNotFoundException.class)
+    public ResponseEntity<?> tratarRefreshTokenNaoEncontrado(Exception ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MercadoPagoPaymentException.class)
+    public ResponseEntity<?> tratarErroMercadoPago(MercadoPagoPaymentException ex){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TournamentNotExistsException.class)
+    public ResponseEntity<?> tratarTorneioNaoEncontrado(Exception ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TeamWithoutPaymentException.class)
+    public ResponseEntity<?> tratarErroSemPagamento(TeamWithoutPaymentException ex){
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(Map.of("error", ex.getMessage()));
+    }
 
 
+    //==================================================================================================================
     // 404 genérico (JPA)
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> tratarErro404(Exception ex) {
@@ -151,9 +176,10 @@ public class TratadorDeErros {
     // Fallback — qualquer erro não tratado
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> tratarErroGenerico(Exception ex) {
+        String message = "Erro interno do servidor: ";
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Erro interno no servidor"));
+                .body(Map.of("error", message));
     }
 
 

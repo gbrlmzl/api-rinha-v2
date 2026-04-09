@@ -30,7 +30,7 @@ public class ImgurAPIService {
      * @param file      arquivo recebido via multipart
      * @param teamName  nome da equipe — usado como título da imagem no Imgur
      * @return          URL pública da imagem
-     * @throws ImgurUploadException se o upload falhar
+     *
      */
     public String uploadShield(MultipartFile file, String teamName) {
         try {
@@ -59,8 +59,8 @@ public class ImgurAPIService {
             boolean success = root.path("success").asBoolean(false);
             if (!success) {
                 String errorMsg = root.path("data").path("error").asText("Erro desconhecido");
-                //throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
-                return null;
+                throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
+
             }
 
             return root.path("data").path("link").asText();

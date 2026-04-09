@@ -71,10 +71,10 @@ public class EmitPaymentAPIService {
             throw new MercadoPagoPaymentException(
                     "Erro ao criar pagamento no Mercado Pago",
                     e.getApiResponse().getStatusCode(),
-                    "Detalhes: " + e.getApiResponse().getContent()
+                    "Detalhes: " + e.getApiResponse().getContent() //Detalhes do erro apenas para debug
             );
         } catch (MPException e) {
-            throw new RuntimeException("Erro inesperado ao processar pagamento: " + e.getMessage());
+            throw new MercadoPagoPaymentException("Erro inesperado ao processar pagamento");
         }
 
 
