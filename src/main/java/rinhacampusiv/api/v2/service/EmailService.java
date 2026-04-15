@@ -16,6 +16,8 @@ import rinhacampusiv.api.v2.infra.exception.SendEmailException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 
+
+//Transformar isso em UTIL, não ser Service.
 @Service
 public class EmailService {
 
