@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
+package rinhacampusiv.api.v2.validators.tournament.TeamRegister;
 
 import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;

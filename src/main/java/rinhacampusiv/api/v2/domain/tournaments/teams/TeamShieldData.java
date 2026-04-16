@@ -1,7 +1,7 @@
 package rinhacampusiv.api.v2.domain.tournaments.teams;
 
 import org.springframework.web.multipart.MultipartFile;
-import rinhacampusiv.api.v2.validators.tournamentTeamRegister.ValidTeamShield;
+import rinhacampusiv.api.v2.validators.tournament.ValidTeamShield;
 
 public record TeamShieldData(
         @ValidTeamShield

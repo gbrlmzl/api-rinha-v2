@@ -1,9 +1,11 @@
 package rinhacampusiv.api.v2.domain.tournaments.teams;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 
 import java.util.Optional;
 
@@ -33,4 +35,19 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     // Busca todas as equipes de um torneio com jogadores e pagamentos — útil para dashboards
     @Query("SELECT t FROM Team t LEFT JOIN FETCH t.players LEFT JOIN FETCH t.payments WHERE t.tournament.id = :tournamentId")
     java.util.List<Team> findAllByTournamentIdWithDetails(@Param("tournamentId") Long tournamentId);
+
+    long countByTournamentIdAndStatus(Long tournamentId, TeamStatus status);
+
+    long countByTournamentId(Long id);
+
+    void deleteAllByTournamentId(Long id);
+
+    // Busca as equipes onde o usuário está, seja ele o capitão OU um dos jogadores
+    @Query("SELECT DISTINCT t FROM Team t LEFT JOIN t.players p WHERE (p.user.email = :email OR t.captain.email = :email) AND t.tournament.game = :game")
+    Page<Team> findTeamsByUserEmailAndGame(@Param("email") String email, @Param("game") TournamentGame game, Pageable pageable);
+
+    @Query("SELECT COUNT(t) > 0 FROM Team t LEFT JOIN t.players p " +
+            "WHERE t.tournament.id = :tournamentId " +
+            "AND (t.captain.email = :email OR p.user.email = :email)")
+    boolean existsByTournamentIdAndUserEmail(@Param("tournamentId") Long tournamentId, @Param("email") String email);
 }

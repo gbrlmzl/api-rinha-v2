@@ -1,8 +1,9 @@
-package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
+package rinhacampusiv.api.v2.validators.tournament.TeamRegister;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;
+import rinhacampusiv.api.v2.validators.tournament.ValidTeamShield;
 
 import java.util.Set;
 

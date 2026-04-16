@@ -42,13 +42,11 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/me").permitAll()
                         // Torneios — leitura pública, escrita restrita ao ADMIN
-                        .requestMatchers(HttpMethod.GET,    "/tournaments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,   "/tournaments").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH,  "/tournaments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/tournaments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/tournaments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/tournaments/me/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/tournaments/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Autorizar /webhook para a notificação do pagamento do mercadopago
-                        .requestMatchers(HttpMethod.POST,"/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/webhook").permitAll()
                         // Autorizar /ws/** para os cliente que vai se inscrever no websocket
                         .requestMatchers("/ws/**").permitAll()
                         // Autorizar rotas de recuperação de senha

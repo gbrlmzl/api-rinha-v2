@@ -1,7 +1,6 @@
 package rinhacampusiv.api.v2.service;
 
 import com.mercadopago.resources.payment.Payment;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.TournamentNotExistsException;
-import rinhacampusiv.api.v2.validators.tournamentTeamRegister.TournamentTeamRegisterValidator;
+import rinhacampusiv.api.v2.validators.tournament.TeamRegister.TournamentTeamRegisterValidator;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;

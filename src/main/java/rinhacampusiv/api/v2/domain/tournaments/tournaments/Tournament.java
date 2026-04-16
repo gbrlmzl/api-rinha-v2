@@ -3,6 +3,8 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import lombok.*;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -44,6 +46,13 @@ public class Tournament {
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "rules_url")
+    private String rulesUrl;
 
     public Tournament(@Valid TournamentCreationData tournamentDto) {
         this.name = tournamentDto.name();
@@ -52,6 +61,22 @@ public class Tournament {
         this.maxTeams = tournamentDto.maxTeams();
         this.prizePool = tournamentDto.prizePool();
         this.startsAt = tournamentDto.startsAt();
-        this.endsAt = tournamentDto.endsAt();
+        this.createdAt = OffsetDateTime.now();
+        this.description = tournamentDto.description();
+        this.imageUrl = tournamentDto.imageUrl();
+        this.rulesUrl = tournamentDto.rulesUrl();
+    }
+
+    public void updateInformation(TournamentUpdateData data) {
+        if (data.name() != null) this.name = data.name();
+        if (data.game() != null) this.game = data.game();
+        if (data.maxTeams() != null) this.maxTeams = data.maxTeams();
+        if (data.prizePool() != null) this.prizePool = data.prizePool();
+        if (data.startsAt() != null) this.startsAt = data.startsAt();
+        if (data.description() != null) this.description = data.description();
+        if (data.imageUrl() != null) this.imageUrl = data.imageUrl();
+        if (data.status() != null) this.status = data.status();
+        if (data.status() == TournamentStatus.FINISHED || data.status() == TournamentStatus.CANCELED) this.endsAt = OffsetDateTime.now();
+        if (data.rulesUrl() != null) this.rulesUrl = data.rulesUrl();
     }
 }

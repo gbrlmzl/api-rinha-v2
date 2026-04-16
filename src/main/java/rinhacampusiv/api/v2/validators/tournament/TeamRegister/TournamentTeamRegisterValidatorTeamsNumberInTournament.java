@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
+package rinhacampusiv.api.v2.validators.tournament.TeamRegister;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -8,16 +8,16 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 
 @Component
-public class TournamentTeamRegisterValidatorTeamNameAlreadyExists implements TournamentTeamRegisterValidator {
-
+public class TournamentTeamRegisterValidatorTeamsNumberInTournament implements TournamentTeamRegisterValidator {
     @Autowired
-    private TeamRepository teamRepository;
+    TeamRepository teamRepository;
+
 
     @Override
     public void validate(TournamentRegistrationData data, Tournament tournament){
-        String teamName = data.teamData().teamName();
-        if(teamRepository.existsByNameAndTournamentId(teamName, tournament.getId())){
-           throw new ValidatorException(String.format("Já existe uma equipe com o nome \"%s\" cadastrada neste torneio", teamName));
+        if(teamRepository.countByActiveTrueAndTournamentId(tournament.getId()) > 8){
+            throw new ValidatorException("O número máximo de equipes cadastradas no torneio foi atingido");
         }
+
     }
 }

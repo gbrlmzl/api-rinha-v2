@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.validators.tournamentTeamRegister;
+package rinhacampusiv.api.v2.validators.tournament.TeamRegister;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

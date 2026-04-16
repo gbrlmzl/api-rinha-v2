@@ -2,6 +2,8 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments;
 
 public enum TournamentStatus {
     OPEN,
-    ACTIVE,
+    FULL,
+    ONGOING,
+    CANCELED,
     FINISHED
 }

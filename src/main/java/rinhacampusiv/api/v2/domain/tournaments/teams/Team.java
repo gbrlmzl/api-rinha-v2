@@ -12,13 +12,15 @@ import rinhacampusiv.api.v2.domain.user.User;
 import java.time.OffsetDateTime;
 import java.util.*;
 
+
+
+@Entity
+@Table(name = "teams")
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
 @ToString(exclude = {"players", "payment"})
-@Entity
-@Table(name = "teams")
 public class Team {
 
     @Id
@@ -40,6 +42,7 @@ public class Team {
     private String shieldUrl;
 
     @Column(nullable = false, length = 30)
+    @Enumerated(EnumType.STRING)
     private TeamStatus status; // PENDING_PAYMENT, ACTIVE
 
     @Column(nullable = false)
