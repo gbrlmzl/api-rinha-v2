@@ -23,42 +23,42 @@ public class PaymentNotificationController {
 
 
     @PostMapping
-    public ResponseEntity<Void> receivePayment(
-            @RequestBody(required = false) WebHookNotificationData body,
-            @RequestParam(required = false) Map<String, String> params
-    ) {
+    public ResponseEntity<Void> receivePayment(@RequestBody WebHookNotificationData body) {
 
-        String paymentId = null;
-
-        // Formato JSON (novo)
-        if (body != null && body.data() != null) {
-            paymentId = body.data().id();
-        }
-
-        //Formato query param (legado)
-        else if (params.containsKey("id")) {
-            paymentId = params.get("id");
-        }
-
-        if (paymentId == null) {
+        if (body == null || body.data() == null || body.data().id() == null) {
+            // Sem dados válidos, apenas retorna OK para evitar retries
             return ResponseEntity.ok().build();
         }
+
+        String paymentId = body.data().id();
 
         Payment payment = mercadoPagoService.findPayment(paymentId, true);
 
-        if(payment == null){
-            //payment não encontrado, apenas retorna um ok para o mercado pago parar de disparar webhook
+        if (payment == null) {
+            // Payment não encontrado, retorna OK para o Mercado Pago parar de reenviar
             return ResponseEntity.ok().build();
         }
 
-        System.out.println("[Webhook MP] Status: " + payment.getStatus());
+        System.out.println("Payment status: " + payment.getStatus());
+        System.out.println("Payment status detail: " + payment.getStatusDetail());
 
-        if ("approved".equals(payment.getStatus())) {
-            paymentChecker.verifyPayment(payment);
-            System.out.println("[Webhook MP] Pagamento realizado: " + payment.getId());
+        if(payment.getStatus().equals("pending") ){
+            return ResponseEntity.ok().build();
         }
 
-        return ResponseEntity.ok().build();
+        paymentChecker.updatePayment(payment);
+
+        return  ResponseEntity.ok().build();
+
+
+        /*if ("approved".equalsIgnoreCase(payment.getStatus())) {
+            paymentChecker.verifyPayment(payment);
+            System.out.println("[Webhook MP] Pagamento realizado: " + payment.getId());
+        } else if ("expired".equalsIgnoreCase(payment.getStatus())) {
+            // Aqui você pode atualizar o PaymentEntity e o TeamStatus para "EXPIRED"
+            //paymentChecker.updatePaymentStatus(payment);
+        }*/
     }
+
 
 }

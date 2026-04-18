@@ -13,9 +13,6 @@ import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.payments.TeamWithoutPaymentException;
 
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class VerifyEfetuedPaymentService {
@@ -32,32 +29,28 @@ public class VerifyEfetuedPaymentService {
     @Autowired
     private EmailService emailService;
 
-    public void verifyPayment(Payment paymentData) {
-        String mercadoPagoPaymentId = String.valueOf(paymentData.getId());
+    public void updatePayment(Payment mercadoPagoPaymentData) {
+        String mercadoPagoPaymentId = String.valueOf(mercadoPagoPaymentData.getId());
+
         PaymentEntity payment = paymentRepository
                 .findByMercadoPagoId(mercadoPagoPaymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Pagamento não encontrado"));
 
 
+        if (mercadoPagoPaymentData.getStatus().equalsIgnoreCase("approved") &&
+                mercadoPagoPaymentData.getStatusDetail().equalsIgnoreCase("accredited")) {
 
-
-        if (paymentData.getStatus().equalsIgnoreCase("approved") &&
-                paymentData.getStatusDetail().equalsIgnoreCase("accredited")) {
-
-            payment.setStatus("APPROVED");
-            payment.setStatusDetail("PAGAMENTO REALIZADO");
-            payment.setPaidAt(paymentData.getDateApproved());
+            payment.approve(mercadoPagoPaymentData.getDateApproved(), mercadoPagoPaymentData.getStatusDetail());
 
             Team paymentTeam = payment.getTeam();
 
             if (paymentTeam == null) {
                 throw new TeamWithoutPaymentException("Equipe sem pagamento gerado");
             }
-            paymentTeam.approvedPayment();
+            paymentTeam.approvePayment();
 
             paymentRepository.save(payment);
             teamRepository.save(paymentTeam);
-
 
 
             WebSocketPaymentData webSocketMessageData = new WebSocketPaymentData(
@@ -74,13 +67,33 @@ public class VerifyEfetuedPaymentService {
             emailService.sendPaymentConfirmationEmail(paymentTeam);
 
 
-        } else {
+        } else if(mercadoPagoPaymentData.getStatus().equals("cancelled")) {
+            //atualizar o status de pagamento
+            payment.cancel(mercadoPagoPaymentData.getStatusDetail());
+
+            Team paymentTeam = payment.getTeam();
+
+            if (paymentTeam == null) {
+                throw new TeamWithoutPaymentException("Equipe sem pagamento gerado");
+            }
+
+            paymentTeam.cancelPayment();
+
+            paymentRepository.save(payment);
+            teamRepository.save(paymentTeam);
+
+            WebSocketPaymentData webSocketMessageData = new WebSocketPaymentData(
+                    payment, "Pagamento expirado!"
+            );
+
             Map<String, String> payload = Map.of("status", payment.getStatus());
             messageSender.convertAndSend(
-                    "/topic/payment/" + payment.getUuid(),
+                    "/topic/payment/" + webSocketMessageData.uuid(),
                     payload
-
             );
+            System.out.println("Pagamento expirado!, WebSocket enviado");
+
+
         }
     }
 

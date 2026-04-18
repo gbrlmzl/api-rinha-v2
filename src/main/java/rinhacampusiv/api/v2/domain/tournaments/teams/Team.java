@@ -1,6 +1,5 @@
 package rinhacampusiv.api.v2.domain.tournaments.teams;
 
-import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.*;
 import lombok.*;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
@@ -16,7 +15,7 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
-@ToString(exclude = {"players", "payment"})
+@ToString(exclude = {"players", "payments"})
 @Entity
 @Table(name = "teams")
 public class Team {
@@ -40,6 +39,7 @@ public class Team {
     private String shieldUrl;
 
     @Column(nullable = false, length = 30)
+    @Enumerated(EnumType.STRING)
     private TeamStatus status; // PENDING_PAYMENT, ACTIVE
 
     @Column(nullable = false)
@@ -75,10 +75,14 @@ public class Team {
         this.payments.add(payment);
     }
 
-    public void approvedPayment(){
+    public void approvePayment(){
         this.active = true;
         this.status = TeamStatus.READY;
         this.players.forEach(player -> player.setActive(true));
+    }
+
+    public void cancelPayment(){
+        this.status = TeamStatus.EXPIRED_PAYMENT;
     }
 
     public void updateData(TeamUpdateData data) {

@@ -24,7 +24,7 @@ public class PaymentEntity {
 
     // Relacionamento N:1 — cada equipe pode ter N Payments
     @ManyToOne(optional = false)
-    @JoinColumn(name = "team_id", nullable = false, unique = true)
+    @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
     @Column(name = "mercado_pago_id", unique = true)
@@ -34,7 +34,7 @@ public class PaymentEntity {
     private String uuid;
 
     @Column(nullable = false, length = 50)
-    private String status; // PENDING, APPROVED, REJECTED, EXPIRED
+    private String status; // pending, approved, rejected,
 
     @Column(name = "status_detail", length = 100)
     private String statusDetail;
@@ -93,30 +93,27 @@ public class PaymentEntity {
         this.team = team;
     }
 
-
-
-    /* Chamado quando o Mercado Pago confirma o pagamento (webhook/WebSocket)
-    public void approve() {
-        this.status = "APPROVED";
-        this.paidAt = OffsetDateTime.now();
-        this.team.activate(); // ativa a equipe automaticamente
-    }
-
-    public void reject(String detail) {
-        this.status       = "REJECTED";
-        this.statusDetail = detail;
-    }
-
-    public void expire() {
-        this.status = "EXPIRED";
-    }
-
     public boolean isPending() {
-        return "PENDING".equals(this.status);
+        return "PENDING".equalsIgnoreCase(this.status);
     }
 
-    public boolean isApproved() {
-        return "APPROVED".equals(this.status);
-    }*/
+    public void approve(OffsetDateTime paidAt, String statusDetail){
+        this.setStatus("approved");
+        this.setStatusDetail(statusDetail);
+        this.setPaidAt(paidAt);
+
+    }
+
+
+    public void cancel () {
+        this.setStatus("expired");
+        this.setStatusDetail("expired");
+    }
+    public void cancel(String statusDetail){
+        this.setStatus("expired");
+        this.setStatusDetail(statusDetail);
+    }
+
+
 
 }

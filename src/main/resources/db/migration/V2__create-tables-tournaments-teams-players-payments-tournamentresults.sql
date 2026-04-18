@@ -54,7 +54,7 @@ CREATE TABLE players
 CREATE TABLE payments
 (
     id              BIGSERIAL PRIMARY KEY,
-    team_id         BIGINT                   NOT NULL UNIQUE,
+    team_id         BIGINT                   NOT NULL,
     mercado_pago_id VARCHAR(100) UNIQUE,
     uuid            VARCHAR(50)              NOT NULL UNIQUE,
     status          VARCHAR(50)              NOT NULL DEFAULT 'PENDING',
