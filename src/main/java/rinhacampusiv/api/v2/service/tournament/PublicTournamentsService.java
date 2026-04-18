@@ -25,9 +25,6 @@ public class PublicTournamentsService {
     @Autowired
     private TeamRepository teamRepository;
 
-    @Autowired
-    private TournamentMapper tournamentMapper;
-
     @Transactional(readOnly = true)
     public TournamentPublicDetailData getPublicTournamentView(Long id) {
         Tournament tournament = tournamentRepository.findById(id)
@@ -45,7 +42,7 @@ public class PublicTournamentsService {
         }
 
         long confirmedTeams = countTeams(tournament);
-        return tournamentMapper.toPublicDetailData(tournament, confirmedTeams, isRegistered);
+        return new TournamentPublicDetailData(tournament, confirmedTeams, isRegistered);
     }
 
     private String getCurrentUserEmail() {
@@ -61,7 +58,7 @@ public class PublicTournamentsService {
     @Transactional(readOnly = true)
     public Page<TournamentPublicSummaryData> listByGameAndStatusIn(TournamentGame game, List<TournamentStatus> statuses, Pageable pageable) {
         return tournamentRepository.findByGameAndStatusIn(game, statuses, pageable)
-                .map(t -> tournamentMapper.toPublicSummaryData(t, countTeams(t)));
+                .map(t -> new TournamentPublicSummaryData(t, countTeams(t)));
     }
 }
 

@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.websocket.WebSocketPaymentData;
@@ -38,18 +39,12 @@ public class VerifyEfetuedPaymentService {
                 .findByMercadoPagoId(mercadoPagoPaymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Pagamento não encontrado"));
 
-
-
-
         if (paymentData.getStatus().equalsIgnoreCase("approved") &&
                 paymentData.getStatusDetail().equalsIgnoreCase("accredited")) {
 
-            payment.setStatus("APPROVED");
-            payment.setStatusDetail("PAGAMENTO REALIZADO");
-            payment.setPaidAt(paymentData.getDateApproved());
+            payment.approve(paymentData.getDateApproved(), paymentData.getStatusDetail());
 
             Team paymentTeam = payment.getTeam();
-
             if (paymentTeam == null) {
                 throw new TeamWithoutPaymentException("Equipe sem pagamento gerado");
             }
@@ -58,31 +53,30 @@ public class VerifyEfetuedPaymentService {
             paymentRepository.save(payment);
             teamRepository.save(paymentTeam);
 
-
-
-            WebSocketPaymentData webSocketMessageData = new WebSocketPaymentData(
-                    payment, "Pagamento confirmado com sucesso"
-            );
-
-            Map<String, String> payload = Map.of("status", payment.getStatus());
-            messageSender.convertAndSend(
-                    "/topic/payment/" + webSocketMessageData.uuid(),
-                    payload
-            );
-
-            //enviar email de confirmação de pagamento -> Não deve esperar.
-            emailService.sendPaymentConfirmationEmail(paymentTeam);
-
-
-        } else {
-            Map<String, String> payload = Map.of("status", payment.getStatus());
+            Map<String, String> payload = Map.of("status", payment.getStatus().name());
             messageSender.convertAndSend(
                     "/topic/payment/" + payment.getUuid(),
                     payload
-
             );
+
+            emailService.sendPaymentConfirmationEmail(paymentTeam);
+
+        } else if ("cancelled".equals(paymentData.getStatus())) {
+
+            payment.expire();
+
+            paymentRepository.save(payment);
+
+            Map<String, String> payload = Map.of("status", payment.getStatus().name());
+            messageSender.convertAndSend(
+                    "/topic/payment/" + payment.getUuid(),
+                    payload
+            );
+            System.out.println("[Webhook] Pagamento expirado: " + payment.getUuid());
         }
+
     }
+
 
 }
 

@@ -1,5 +1,6 @@
 package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
 
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 
@@ -19,4 +20,21 @@ public record TournamentPublicDetailData(
         OffsetDateTime endsAt,
         String imageUrl,
         boolean isUserRegistered
-) {}
+) {
+    public TournamentPublicDetailData(Tournament tournament, long confirmedTeamsCount, boolean isUserRegistered){
+        this(
+                tournament.getId(),
+                tournament.getName(),
+                tournament.getDescription(),
+                tournament.getRulesUrl(),
+                tournament.getGame(),
+                tournament.getStatus(),
+                confirmedTeamsCount + "/" + tournament.getMaxTeams(),
+                tournament.getPrizePool(),
+                tournament.getStartsAt(),
+                tournament.getEndsAt(),
+                tournament.getImageUrl(),
+                isUserRegistered
+        );
+    }
+}

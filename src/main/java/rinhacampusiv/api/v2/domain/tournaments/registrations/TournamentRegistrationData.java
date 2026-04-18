@@ -2,8 +2,7 @@ package rinhacampusiv.api.v2.domain.tournaments.registrations;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
-import rinhacampusiv.api.v2.domain.tournaments.teams.TeamShieldData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 
 public record TournamentRegistrationData(
         @Valid

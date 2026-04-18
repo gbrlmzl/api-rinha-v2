@@ -2,8 +2,10 @@ package rinhacampusiv.api.v2.domain.tournaments.payments;
 
 import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.*;
-import lombok.*;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 
 import java.math.BigDecimal;
@@ -24,7 +26,7 @@ public class PaymentEntity {
 
     // Relacionamento N:1 — cada equipe pode ter N Payments
     @ManyToOne(optional = false)
-    @JoinColumn(name = "team_id", nullable = false, unique = true)
+    @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
     @Column(name = "mercado_pago_id", unique = true)
@@ -33,8 +35,8 @@ public class PaymentEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String uuid;
 
-    @Column(nullable = false, length = 50)
-    private String status; // PENDING, APPROVED, REJECTED, EXPIRED
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
 
     @Column(name = "status_detail", length = 100)
     private String statusDetail;
@@ -62,7 +64,7 @@ public class PaymentEntity {
     /* Construtor legado */
     public PaymentEntity(Payment data) {
         this.mercadoPagoId = String.valueOf(data.getId());
-        this.status       = data.getStatus();
+        this.status = PaymentStatus.fromMercadoPago(data.getStatus());
         this.statusDetail = data.getStatusDetail();
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
@@ -75,7 +77,7 @@ public class PaymentEntity {
 
     public PaymentEntity(Payment data, String payerName) {
         this.mercadoPagoId = String.valueOf(data.getId());
-        this.status       = data.getStatus();
+        this.status = PaymentStatus.fromMercadoPago(data.getStatus());
         this.statusDetail = data.getStatusDetail();
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
@@ -87,36 +89,32 @@ public class PaymentEntity {
 
     }
 
-
-
     public void linkTeam (Team team){
         this.team = team;
     }
 
-
-
-    /* Chamado quando o Mercado Pago confirma o pagamento (webhook/WebSocket)
-    public void approve() {
-        this.status = "APPROVED";
-        this.paidAt = OffsetDateTime.now();
-        this.team.activate(); // ativa a equipe automaticamente
-    }
-
-    public void reject(String detail) {
-        this.status       = "REJECTED";
-        this.statusDetail = detail;
+    public void approve(OffsetDateTime paidAt, String statusDetail) {
+        this.status = PaymentStatus.APPROVED;
+        this.statusDetail = statusDetail;
+        this.paidAt = paidAt;
     }
 
     public void expire() {
-        this.status = "EXPIRED";
+        this.status = PaymentStatus.EXPIRED;
+        this.statusDetail = "expired";
     }
 
     public boolean isPending() {
-        return "PENDING".equals(this.status);
+        return this.status == PaymentStatus.PENDING;
+    }
+
+    public void reject(String statusDetail) {
+        this.status = PaymentStatus.REJECTED;
+        this.statusDetail = statusDetail;
     }
 
     public boolean isApproved() {
-        return "APPROVED".equals(this.status);
-    }*/
+        return this.status == PaymentStatus.APPROVED;
+    }
 
 }

@@ -6,16 +6,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
-import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatus;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.TournamentNotExistsException;
+import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
 import rinhacampusiv.api.v2.validators.tournament.TeamRegister.TournamentTeamRegisterValidator;
 
 import java.math.BigDecimal;
@@ -23,8 +26,10 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static rinhacampusiv.api.v2.utils.QrCodeUtil.generateBase64;
+
 @Service
-public class ProcessTournamentRegistrationService {
+public class TournamentRegistrationService {
 
     @Autowired
     private EmitPaymentAPIService emitPaymentService;
@@ -52,33 +57,23 @@ public class ProcessTournamentRegistrationService {
 
         User captain = (User) authentication.getPrincipal();
 
+        Optional<Team> existingTeam = teamRepository.findByCaptainIdAndTournamentId(captain.getId(), tournament.getId());
+        if (existingTeam.isPresent()) {
+            return linkPaymentInTeam(existingTeam.get(), registrationData.paymentData());
+        }
 
         tournamentTeamRegisterValidators.forEach(v -> v.validate(registrationData, tournament));
-
 
         TeamRegisterData teamData = registrationData.teamData();
         PaymentRegistrationDataMercadoPago paymentData = registrationData.paymentData();
 
-
-        Team team = null;
-
-        if (teamRepository.existsByNameAndTournamentId(teamData.teamName(), tournament.getId())) {
-            team = teamRepository.findByNameAndTournamentId(teamData.teamName(), tournament.getId()).get();
-
-        } else {
-
-            String shieldUrl = null;
-
-            if (teamShieldFile != null) {
-                //Upload do escudo via API do IMGUR
-                shieldUrl = imgurService.uploadShield(teamShieldFile, teamData.teamName());
-
-            }
-
-
-            team = new Team(teamData, captain, tournament);
-            team.setShieldUrl(shieldUrl);
+        String shieldUrl = null;
+        if (teamShieldFile != null) {
+            shieldUrl = imgurService.uploadShield(teamShieldFile, teamData.teamName());
         }
+
+        Team team = new Team(teamData, captain, tournament);
+        team.setShieldUrl(shieldUrl);
 
         return linkPaymentInTeam(team, paymentData);
     }
@@ -91,13 +86,13 @@ public class ProcessTournamentRegistrationService {
             Team teamEntity = teamOptional.get();
 
             PaymentEntity lastPayment = teamEntity.getPayments().getLast();
-            if (lastPayment.getStatus().equals("pending")) {
+            if (lastPayment.getStatus().equals(PaymentStatus.PENDING)) {
 
                 if (lastPayment.getExpiresAt().isAfter(OffsetDateTime.now().plusMinutes(10))) {
                     return new GeneratedPaymentData(lastPayment);
                 }
             }
-            if (lastPayment.getStatus().equals("PAGAMENTO REALIZADO")) {
+            if (lastPayment.getStatus().equals(PaymentStatus.APPROVED)) {
                 return new GeneratedPaymentData(lastPayment);
             }
         }
@@ -125,6 +120,39 @@ public class ProcessTournamentRegistrationService {
 
 
     }
+
+    public TournamentRegistrationStatus getRegistrationStatus(Long tournamentId, Authentication authentication) {
+        if(authentication == null){
+            throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
+        }
+        User captain = (User) authentication.getPrincipal();
+
+        if (captain == null) { //Disparar exceção genérica
+            throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
+        }
+
+        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentId(captain.getId(), tournamentId);
+
+        if (team.isPresent()) {
+            PaymentEntity payment = team.get().getPayments().getLast();
+
+            PaymentStatus paymentStatus = payment.getStatus();
+
+            if (payment.isPending()) {
+                String qrCode = payment.getQrCode();
+                String qrCodeBase64 = generateBase64(qrCode);
+
+                return new TournamentRegistrationStatus(true, paymentStatus, payment.getUuid(), payment.getValue(), qrCode, qrCodeBase64, payment.getExpiresAt());
+
+            } else {
+                return new TournamentRegistrationStatus(true, paymentStatus);
+            }
+
+        } else {
+            return new TournamentRegistrationStatus(false);
+        }
+    }
+
 
     private BigDecimal calculateRegistatrionPrice(Integer playersAmount){
         BigDecimal value;

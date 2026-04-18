@@ -9,7 +9,6 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentMapper;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
 
 @Service
@@ -18,14 +17,11 @@ public class MyTournamentsService {
     @Autowired
     private TeamRepository teamRepository;
 
-    @Autowired
-    private TournamentMapper tournamentMapper;
-
     @Transactional(readOnly = true)
     public Page<TournamentPublicSummaryData> getMyActiveTournaments(TournamentGame game, Pageable pageable, String userEmail) {
         return teamRepository.findTeamsByUserEmailAndGame(userEmail, game, pageable)
                 .map(Team::getTournament)
-                .map(t -> tournamentMapper.toPublicSummaryData(t, countTeams(t.getId())));
+                .map(t -> new TournamentPublicSummaryData(t, countTeams(t.getId())));
     }
 
     private long countTeams(Long tournamentId) {

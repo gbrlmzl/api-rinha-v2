@@ -20,7 +20,7 @@ import rinhacampusiv.api.v2.infra.exception.payments.TeamWithoutPaymentException
 import java.util.Map;
 
 @RestControllerAdvice
-public class TratadorDeErros {
+public class GlobalExceptionHandler {
 
 
 
@@ -159,6 +159,13 @@ public class TratadorDeErros {
     @ExceptionHandler(TeamWithoutPaymentException.class)
     public ResponseEntity<?> tratarErroSemPagamento(TeamWithoutPaymentException ex){
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TournamentFullException.class)
+    public ResponseEntity<?> handleTournamentFull(TournamentFullException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
 

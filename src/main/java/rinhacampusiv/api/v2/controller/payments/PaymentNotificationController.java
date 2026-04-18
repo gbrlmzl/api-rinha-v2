@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.mercadoPago.MercadoPagoService;
 import rinhacampusiv.api.v2.domain.mercadoPago.WebHookNotificationData;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentWebhookLogRepository;
 import rinhacampusiv.api.v2.service.VerifyEfetuedPaymentService;
+import rinhacampusiv.api.v2.service.WebhookPaymentService;
 
 import java.util.Map;
 
@@ -16,48 +18,14 @@ import java.util.Map;
 public class PaymentNotificationController {
 
     @Autowired
-    private VerifyEfetuedPaymentService paymentChecker;
-
-    @Autowired
-    private MercadoPagoService mercadoPagoService;
+    private WebhookPaymentService webhookService;
 
 
     @PostMapping
     public ResponseEntity<Void> receivePayment(
-            @RequestBody(required = false) WebHookNotificationData body,
-            @RequestParam(required = false) Map<String, String> params
-    ) {
+            @RequestBody WebHookNotificationData body) {
 
-        String paymentId = null;
-
-        // Formato JSON (novo)
-        if (body != null && body.data() != null) {
-            paymentId = body.data().id();
-        }
-
-        //Formato query param (legado)
-        else if (params.containsKey("id")) {
-            paymentId = params.get("id");
-        }
-
-        if (paymentId == null) {
-            return ResponseEntity.ok().build();
-        }
-
-        Payment payment = mercadoPagoService.findPayment(paymentId, true);
-
-        if(payment == null){
-            //payment não encontrado, apenas retorna um ok para o mercado pago parar de disparar webhook
-            return ResponseEntity.ok().build();
-        }
-
-        System.out.println("[Webhook MP] Status: " + payment.getStatus());
-
-        if ("approved".equals(payment.getStatus())) {
-            paymentChecker.verifyPayment(payment);
-            System.out.println("[Webhook MP] Pagamento realizado: " + payment.getId());
-        }
-
+        webhookService.process(body);
         return ResponseEntity.ok().build();
     }
 

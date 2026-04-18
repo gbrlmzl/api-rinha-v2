@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.domain.tournaments.teams;
+package rinhacampusiv.api.v2.domain.tournaments.teams.dtos;
 
 import jakarta.validation.constraints.NotNull;
 

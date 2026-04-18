@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.controller.tournaments;
+package rinhacampusiv.api.v2.controller.tournaments.admin;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -15,21 +15,21 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
-import rinhacampusiv.api.v2.service.tournament.AdminTournamentsService;
+import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentService;
 
 @RestController
 @RequestMapping("/admin/tournaments")
 public class AdminTournamentController {
 
     @Autowired
-    private AdminTournamentsService adminService;
+    private AdminTournamentService adminService;
 
     @PostMapping
     public ResponseEntity<TournamentAdminDetailData> create(
             @RequestBody TournamentCreationData tournamentData,
-            UriComponentsBuilder uriBuilder ) {
+            UriComponentsBuilder uriBuilder) {
         TournamentAdminDetailData response = adminService.createTournament(tournamentData);
-        var uri = uriBuilder.path("/admin/tournaments/{id}").buildAndExpand(response.id()).toUri();
+        var uri = uriBuilder.path("/admin/tournaments/{tournamentId}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(uri).body(response);
     }
 
@@ -42,29 +42,30 @@ public class AdminTournamentController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TournamentAdminDetailData> getTournamentDetails(@PathVariable Long id) {
-        TournamentAdminDetailData response = adminService.getTournamentById(id);
+    @GetMapping("/{tournamentId}")
+    public ResponseEntity<TournamentAdminDetailData> getTournamentDetails(@PathVariable Long tournamentId) {
+        TournamentAdminDetailData response = adminService.getTournamentById(tournamentId);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{tournamentId}")
     @Transactional
     public ResponseEntity<TournamentAdminDetailData> updateTournament(
-            @PathVariable Long id,
+            @PathVariable Long tournamentId,
             @RequestBody @Valid TournamentUpdateData data) {
 
-        TournamentAdminDetailData response = adminService.updateTournament(id, data);
+        TournamentAdminDetailData response = adminService.updateTournament(tournamentId, data);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{tournamentId}")
     @Transactional
     public ResponseEntity<Void> deleteTournament(
-            @PathVariable Long id,
+            @PathVariable Long tournamentId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {
 
-        adminService.deleteTournament(id, force);
+        adminService.cancelTournament(tournamentId, force);
         return ResponseEntity.noContent().build();
     }
+
 }

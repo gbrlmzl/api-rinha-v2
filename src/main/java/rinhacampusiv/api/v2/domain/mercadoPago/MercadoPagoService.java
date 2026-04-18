@@ -15,33 +15,25 @@ public class MercadoPagoService {
     @Value("${mercadopago.access.token}")
     private String accessToken;
 
-    @Value("${mercadopago.test.token}")
-    private String accessTokenTest;
-
     private PaymentClient paymentClient;
 
-    public void init(){
+    public void init() {
         this.paymentClient = new PaymentClient();
         MercadoPagoConfig.setAccessToken(accessToken);
     }
 
-    public Payment findPayment(String mercadoPagoId){
-        try{
+    public Payment findPayment(String mercadoPagoId, boolean isWebHook) {
+        try {
             init();
             return paymentClient.get(Long.valueOf(mercadoPagoId));
-        } catch (MPException | MPApiException e){
-            throw new PaymentNotFoundException("Erro ao consultar pagamento: " + e.getMessage());
-            //MercadoPagoPaymentException
-        }
-    }
+        } catch (MPException | MPApiException e) {
+            if (isWebHook) {
+                return null;
+            } else {
+                throw new PaymentNotFoundException("Erro ao consultar pagamento: " + e.getMessage());
+            }
 
-    public Payment findPayment(String mercadoPagoId, boolean isWebHook){
-        try{
-            init();
-            return paymentClient.get(Long.valueOf(mercadoPagoId));
-        } catch (MPException | MPApiException e){
-            //No caso do webHook, não deve lançar exceção, apenas retornar null.
-            return null;
+            //MercadoPagoPaymentException
         }
     }
 }

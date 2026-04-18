@@ -27,9 +27,6 @@ public class EmitPaymentAPIService {
     @Value("${mercadopago.access.token}")
     private String accessToken;
 
-    @Value("${mercadopago.test.token}")
-    private String accessTokenTest;
-
     public Payment emitPayment (PaymentRegistrationDataMercadoPago data, BigDecimal value){
         MercadoPagoConfig.setAccessToken(accessToken);
 
@@ -57,10 +54,10 @@ public class EmitPaymentAPIService {
 
         PaymentCreateRequest paymentData = PaymentCreateRequest.builder()
                 .transactionAmount(value)
-                .description("Inscrição Rinha do Campus IV")
+                .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
-                .dateOfExpiration(OffsetDateTime.now().plusHours(1))
-                .notificationUrl("https://c049-2804-9f8-4780-3cd0-c3-cd45-dca4-15bd.ngrok-free.app/webhook") //dominio base + /webhooks
+                .dateOfExpiration(OffsetDateTime.now().plusMinutes(10))
+                .notificationUrl("https://6da9-2804-9f8-4783-e3a0-19ff-20d4-7d62-8a86.ngrok-free.app/webhook?source_news=webhooks") //Notificações apenas via webhook
                 .payer(payerData)
                 .build();
 

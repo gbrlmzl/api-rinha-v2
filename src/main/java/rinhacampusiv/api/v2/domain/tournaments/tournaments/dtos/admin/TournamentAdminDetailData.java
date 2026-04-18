@@ -1,5 +1,6 @@
 package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin;
 
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 
@@ -20,4 +21,21 @@ public record TournamentAdminDetailData(
         String imageUrl,
         String rulesUrl
 ) {
+
+    public TournamentAdminDetailData(Tournament tournament) {
+        this(
+                tournament.getId(),
+                tournament.getName(),
+                tournament.getGame(),
+                tournament.getStatus(),
+                tournament.getMaxTeams(),
+                tournament.getPrizePool(),
+                tournament.getStartsAt(),
+                tournament.getEndsAt(),
+                tournament.getCreatedAt(),
+                tournament.getDescription(),
+                tournament.getImageUrl(),
+                tournament.getRulesUrl()
+        );
+    }
 }

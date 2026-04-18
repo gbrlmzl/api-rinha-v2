@@ -1,8 +1,10 @@
 package rinhacampusiv.api.v2.domain.tournaments.teams;
 
-import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamUpdateData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.players.Player;
@@ -20,7 +22,7 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
-@ToString(exclude = {"players", "payment"})
+@ToString(exclude = {"players", "payments"})
 public class Team {
 
     @Id
@@ -51,9 +53,11 @@ public class Team {
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @BatchSize(size = 32)
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players = new ArrayList<>();
 
+    @BatchSize(size = 32)
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentEntity> payments  = new ArrayList<>();
 
@@ -84,9 +88,18 @@ public class Team {
         this.players.forEach(player -> player.setActive(true));
     }
 
+    public void cancelPayment(){
+        this.status = TeamStatus.CANCELED;
+    }
+
     public void updateData(TeamUpdateData data) {
         if (data.teamName() != null)      this.name      = data.teamName();
         if (data.shieldUrl() != null) this.shieldUrl = data.shieldUrl();
+    }
+
+    public void ban(){
+        this.setStatus(TeamStatus.BANNED);
+        this.setActive(false);
     }
 
     public boolean isPendingPayment() {

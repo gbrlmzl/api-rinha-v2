@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TeamRepository extends JpaRepository<Team, Long> {
@@ -23,6 +24,9 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     // Busca equipe pelo nome dentro de um torneio específico
     Optional<Team> findByNameAndTournamentId(String name, Long tournamentId);
 
+    //Busca equipe por id do capitão e id do torneio
+    Optional<Team> findByCaptainIdAndTournamentId(Long captainId, Long tournamentId);
+
     Boolean existsByNameIgnoreCaseAndTournamentId(String name, Long tournamentId);
     // Busca equipe com pagamentos já carregados — evita N+1 no fluxo de pagamento
     @Query("SELECT t FROM Team t LEFT JOIN FETCH t.payments WHERE t.id = :id")
@@ -34,13 +38,19 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     // Busca todas as equipes de um torneio com jogadores e pagamentos — útil para dashboards
     @Query("SELECT t FROM Team t LEFT JOIN FETCH t.players LEFT JOIN FETCH t.payments WHERE t.tournament.id = :tournamentId")
-    java.util.List<Team> findAllByTournamentIdWithDetails(@Param("tournamentId") Long tournamentId);
+    List<Team> findAllByTournamentIdWithDetails(@Param("tournamentId") Long tournamentId);
+
+    //Busca equipes com pagamentos pendentes
+    @Query("SELECT t FROM Team t JOIN FETCH t.payments WHERE t.status = 'PENDING_PAYMENT' ")
+    List<Team> findAllPendingPayments();
 
     long countByTournamentIdAndStatus(Long tournamentId, TeamStatus status);
 
     long countByTournamentId(Long id);
 
-    void deleteAllByTournamentId(Long id);
+
+    //verificar se existe equipes com o mesmo nome no mesmo torneio que não estejam canceladas
+    Boolean existsByNameAndTournamentIdAndStatusNot(String name, Long tournamentId, TeamStatus status);
 
     // Busca as equipes onde o usuário está, seja ele o capitão OU um dos jogadores
     @Query("SELECT DISTINCT t FROM Team t LEFT JOIN t.players p WHERE (p.user.email = :email OR t.captain.email = :email) AND t.tournament.game = :game")
@@ -50,4 +60,6 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
             "WHERE t.tournament.id = :tournamentId " +
             "AND (t.captain.email = :email OR p.user.email = :email)")
     boolean existsByTournamentIdAndUserEmail(@Param("tournamentId") Long tournamentId, @Param("email") String email);
+
+    Page<Team> findByTournamentId(Long tournamentId, Pageable pageable);
 }
