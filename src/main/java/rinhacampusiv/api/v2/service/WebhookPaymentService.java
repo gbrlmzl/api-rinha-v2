@@ -1,6 +1,5 @@
 package rinhacampusiv.api.v2.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercadopago.resources.payment.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,9 +9,6 @@ import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentWebhookLog;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentWebhookLogRepository;
-
-
-import java.util.Map;
 
 @Service
 public class WebhookPaymentService {
@@ -29,7 +25,7 @@ public class WebhookPaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    public void process(WebHookNotificationData body) {
+    public void processPayment(WebHookNotificationData body) {
         if (body == null || body.data() == null) {
             saveLog(null, null, "IGNORED", "body ausente ou sem data");
             return;

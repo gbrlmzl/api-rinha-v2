@@ -3,6 +3,7 @@ package rinhacampusiv.api.v2.controller.tournaments;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -30,16 +31,15 @@ public class TournamentRegistrationController {
     @PostMapping(value = "/{tournamentId}/registrations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GeneratedPaymentData> register(
             @PathVariable Long tournamentId,
-            @RequestPart("teamData")    @Valid TeamRegisterData teamData,
+            @RequestPart(value = "teamData", required = false) @Valid TeamRegisterData teamData,
             @RequestPart("paymentData") @Valid PaymentRegistrationDataMercadoPago paymentData,
             @RequestPart(value = "teamShield", required = false) MultipartFile teamShield,
             Authentication authentication) {
 
-        // monta o TournamentRegistrationData internamente
         var registrationData = new TournamentRegistrationData(teamData,paymentData);
 
         GeneratedPaymentData result = tournamentRegistrationService.registerTeam(
-                tournamentId, registrationData,teamShield, authentication
+                tournamentId, registrationData, teamShield, authentication
         );
 
         URI uri = URI.create("/payments/" + result.uuid());
@@ -59,6 +59,15 @@ public class TournamentRegistrationController {
         return ResponseEntity.ok(registrationStatus);
 
 
+    }
+
+    @GetMapping("/{tournamentId}/teams/check-name")
+    public ResponseEntity<Void> checkTeamName(
+            @PathVariable Long tournamentId,
+            @RequestParam String name) {
+
+        tournamentRegistrationService.existsTeamByName(tournamentId, name.trim());
+        return ResponseEntity.noContent().build();
     }
 
 

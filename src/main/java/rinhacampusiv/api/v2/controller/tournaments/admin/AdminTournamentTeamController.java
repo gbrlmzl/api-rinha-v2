@@ -13,7 +13,7 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
 import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentTeamService;
 
 @RestController
-@RequestMapping("/admin/tournament/{tournamentId}/teams")
+@RequestMapping("/admin/tournaments/{tournamentId}/teams")
 public class AdminTournamentTeamController {
 
     @Autowired
@@ -34,19 +34,4 @@ public class AdminTournamentTeamController {
         adminService.banTeam(tournamentId, teamId);
         return ResponseEntity.noContent().build();
     }
-
-    //    @GetMapping("/{tournamentId}/teamsRegistered/check-name")
-//    public ResponseEntity<Void> checkTeamName(
-//            @PathVariable Long tournamentId,
-//            @RequestParam String name) {
-//
-//        String cleanedName = name.trim();
-//
-//        Boolean exists = teamRepository.existsByNameIgnoreCaseAndTournamentId(cleanedName, tournamentId);
-//
-//        return exists
-//                ? ResponseEntity.status(HttpStatus.CONFLICT).build()
-//                : ResponseEntity.noContent().build();
-//    }
-//}
 }

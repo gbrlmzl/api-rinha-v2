@@ -11,6 +11,7 @@ import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentDat
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
@@ -19,10 +20,11 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegist
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.TournamentNotExistsException;
 import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
+import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 import rinhacampusiv.api.v2.validators.tournament.TeamRegister.TournamentTeamRegisterValidator;
+import rinhacampusiv.api.v2.validators.tournament.tournamentRetryRegister.TournamentRetryRegisterValidator;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +46,9 @@ public class TournamentRegistrationService {
     private List<TournamentTeamRegisterValidator> tournamentTeamRegisterValidators;
 
     @Autowired
+    private List<TournamentRetryRegisterValidator> tournamentRetryRegisterValidators;
+
+    @Autowired
     private TournamentRepository tournamentRepository;
 
     //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
@@ -57,9 +62,8 @@ public class TournamentRegistrationService {
 
         User captain = (User) authentication.getPrincipal();
 
-        Optional<Team> existingTeam = teamRepository.findByCaptainIdAndTournamentId(captain.getId(), tournament.getId());
-        if (existingTeam.isPresent()) {
-            return linkPaymentInTeam(existingTeam.get(), registrationData.paymentData());
+        if (registrationData.teamData() == null && registrationData.paymentData() != null){
+            return retryRegisterTeam(tournament, captain, registrationData.paymentData(), authentication);
         }
 
         tournamentTeamRegisterValidators.forEach(v -> v.validate(registrationData, tournament));
@@ -78,24 +82,23 @@ public class TournamentRegistrationService {
         return linkPaymentInTeam(team, paymentData);
     }
 
-    public GeneratedPaymentData linkPaymentInTeam(Team teamToRegister, PaymentRegistrationDataMercadoPago paymentData) {
-        Optional<Team> teamOptional = teamRepository.findByIdWithPayments(
-                teamToRegister.getId());
+    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain,  PaymentRegistrationDataMercadoPago paymentData, Authentication authentication) {
 
-        if (teamOptional.isPresent()) {
-            Team teamEntity = teamOptional.get();
-
-            PaymentEntity lastPayment = teamEntity.getPayments().getLast();
-            if (lastPayment.getStatus().equals(PaymentStatus.PENDING)) {
-
-                if (lastPayment.getExpiresAt().isAfter(OffsetDateTime.now().plusMinutes(10))) {
-                    return new GeneratedPaymentData(lastPayment);
-                }
-            }
-            if (lastPayment.getStatus().equals(PaymentStatus.APPROVED)) {
-                return new GeneratedPaymentData(lastPayment);
-            }
+        //Encontrar equipe vinculada ao captain
+        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournament.getId(), TeamStatus.CANCELED);
+        if (team.isEmpty()) {
+            throw new RuntimeException("Não existe equipe cadastrada para retry");
         }
+        //Como validar esse retry?
+
+        Team teamToRetry = team.get();
+        tournamentRetryRegisterValidators.forEach(v -> v.validate(tournament, teamToRetry));
+
+        return linkPaymentInTeam(teamToRetry, paymentData);
+
+    }
+
+    public GeneratedPaymentData linkPaymentInTeam(Team teamToRegister, PaymentRegistrationDataMercadoPago paymentData) {
 
         PaymentEntity newPayment = generateNewPayment(teamToRegister, paymentData);
         newPayment.linkTeam(teamToRegister);
@@ -110,7 +113,6 @@ public class TournamentRegistrationService {
         String payerName = paymentData.nome() + " " + paymentData.sobrenome();
 
 
-
         BigDecimal value = calculateRegistatrionPrice(team.getPlayers().size());
 
 
@@ -122,7 +124,7 @@ public class TournamentRegistrationService {
     }
 
     public TournamentRegistrationStatus getRegistrationStatus(Long tournamentId, Authentication authentication) {
-        if(authentication == null){
+        if (authentication == null) {
             throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
         }
         User captain = (User) authentication.getPrincipal();
@@ -153,8 +155,14 @@ public class TournamentRegistrationService {
         }
     }
 
+    public void existsTeamByName(Long tournamentId, String name){
+        if(teamRepository.existsByNameIgnoreCaseAndTournamentId(name, tournamentId)){
+            throw new ValidatorException("Já existe uma equipe com esse nome");
+        }
+    }
 
-    private BigDecimal calculateRegistatrionPrice(Integer playersAmount){
+
+    private BigDecimal calculateRegistatrionPrice(Integer playersAmount) {
         BigDecimal value;
         if (playersAmount == 5) {
             value = new BigDecimal(5);

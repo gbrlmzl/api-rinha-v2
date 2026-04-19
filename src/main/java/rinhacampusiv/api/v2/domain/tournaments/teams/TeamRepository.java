@@ -62,4 +62,8 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     boolean existsByTournamentIdAndUserEmail(@Param("tournamentId") Long tournamentId, @Param("email") String email);
 
     Page<Team> findByTournamentId(Long tournamentId, Pageable pageable);
+
+    Optional<Team> findByCaptainIdAndTournamentIdAndStatusNot(Long captainId, Long tournamentId, TeamStatus status);
+
+    Boolean existsByNameAndTournamentIdAndIdNot(String name, Long tournamentId, Long teamId);
 }
