@@ -7,9 +7,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentLogData;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventData;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentWebhookLog;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
 import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentPaymentService;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class AdminTournamentPaymentController {
     private AdminTournamentPaymentService paymentService;
 
     @GetMapping("/tournaments/{tournamentId}/payments")
-    public ResponseEntity<Page<PaymentLogData>> listPayments(
+    public ResponseEntity<Page<PaymentEventData>> listPayments(
             @PathVariable Long tournamentId,
             @RequestParam(required = false) PaymentStatus status,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -30,8 +30,8 @@ public class AdminTournamentPaymentController {
         return ResponseEntity.ok(paymentService.listPayments(tournamentId, status, pageable));
     }
 
-    @GetMapping("/payments/{paymentId}/raw-log")
-    public ResponseEntity<List<PaymentWebhookLog>> getRawLog(@PathVariable Long paymentId) {
-        return ResponseEntity.ok(paymentService.getRawLogs(paymentId));
+    @GetMapping("/payments/{paymentId}/events")
+    public ResponseEntity<List<PaymentEvent>> getEvents(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(paymentService.getEvents(paymentId));
     }
 }

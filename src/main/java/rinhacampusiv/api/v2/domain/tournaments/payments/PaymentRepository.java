@@ -13,11 +13,11 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
     Optional<PaymentEntity> findByMercadoPagoId(String mercadoPagoId);
 
-    List<PaymentEntity> findAllByStatus(String status);
+    List<PaymentEntity> findAllByStatus(PaymentStatus status);
 
-    Page<PaymentEntity> findAllByStatus(String status, Pageable pagination);
+    Page<PaymentEntity> findAllByStatus(PaymentStatus status, Pageable pagination);
 
-    Long countByStatus(String status);
+    Long countByStatus(PaymentStatus status);
 
     String id(Long id);
 

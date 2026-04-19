@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.domain.tournaments.registrations;
 
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatusDetail;
 import rinhacampusiv.api.v2.utils.QrCodeUtil;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.time.OffsetDateTime;
 public record GeneratedPaymentData(
         String mercadoPagoPaymentId,
         PaymentStatus status,
-        String statusDetailed,
+        PaymentStatusDetail statusDetailed,
         BigDecimal value,
         OffsetDateTime createdAt,
         OffsetDateTime expiresAt,

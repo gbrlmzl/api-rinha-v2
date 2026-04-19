@@ -106,7 +106,7 @@ public class PaymentEntity {
         this.statusDetail = PaymentStatusDetail.EXPIRED;
     }
 
-    public void cancel() {
+    public void cancelByUser() {
         this.status = PaymentStatus.CANCELED;
         this.statusDetail = PaymentStatusDetail.CANCELED_BY_USER;
     }

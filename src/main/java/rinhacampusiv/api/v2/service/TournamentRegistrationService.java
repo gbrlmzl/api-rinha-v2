@@ -4,6 +4,7 @@ import com.mercadopago.resources.payment.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
@@ -52,6 +53,7 @@ public class TournamentRegistrationService {
     private TournamentRepository tournamentRepository;
 
     //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
+
 
     public GeneratedPaymentData registerTeam(Long tournamentId, TournamentRegistrationData registrationData,
                                              MultipartFile teamShieldFile,

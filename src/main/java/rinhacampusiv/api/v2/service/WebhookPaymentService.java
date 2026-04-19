@@ -7,8 +7,9 @@ import rinhacampusiv.api.v2.domain.mercadoPago.MercadoPagoService;
 import rinhacampusiv.api.v2.domain.mercadoPago.WebHookNotificationData;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentWebhookLog;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentWebhookLogRepository;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventRepository;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
 
 @Service
 public class WebhookPaymentService {
@@ -20,50 +21,53 @@ public class WebhookPaymentService {
     private VerifyEfetuedPaymentService verifyPaymentService;
 
     @Autowired
-    private PaymentWebhookLogRepository webhookLogRepository;
+    private PaymentEventRepository eventRepository;
 
     @Autowired
     private PaymentRepository paymentRepository;
 
     public void processPayment(WebHookNotificationData body) {
         if (body == null || body.data() == null) {
-            saveLog(null, null, "IGNORED", "body ausente ou sem data");
+            saveEvent(null, null, PaymentEventType.IGNORED, null, null,"body ausente ou sem data");
             return;
         }
 
         String paymentId = body.data().id();
+        PaymentEntity paymentEntity = paymentRepository
+                .findByMercadoPagoId(paymentId)
+                .orElse(null);
 
         Payment mpPayment = mercadoPagoService.findPayment(paymentId, true);
-
-        if (mpPayment == null) {
-            saveLog(null, paymentId, "IGNORED", "não encontrado no MP");
+        if (mpPayment == null){
+            saveEvent(paymentEntity, paymentId, PaymentEventType.IGNORED, null, null, "payment not found");
             return;
         }
 
-        verifyPaymentService.verifyPayment(mpPayment);
+        String statusFromMp = mpPayment.getStatus();
+        String statusDetailFromMp = mpPayment.getStatusDetail();
 
-        if ("approved".equals(mpPayment.getStatus())) {
-            try {
+        if (!"approved".equals(statusFromMp)) {
+            saveEvent(paymentEntity, paymentId, PaymentEventType.IGNORED, statusFromMp, null, null);
+            return;
+        }
 
-                PaymentEntity paymentEntity = paymentRepository
-                        .findByMercadoPagoId(String.valueOf(mpPayment.getId()))
-                        .orElse(null);
-                saveLog(paymentEntity, paymentId, "PROCESSED", null);
-            } catch (Exception e) {
-                saveLog(null, paymentId, "ERROR", e.getMessage());
-            }
-        } else {
-            saveLog(null, paymentId, "IGNORED", "status: " + mpPayment.getStatus());
+        try {
+            verifyPaymentService.verifyPayment(mpPayment);
+            saveEvent(paymentEntity, paymentId, PaymentEventType.PROCESSED, statusFromMp,statusDetailFromMp, null);
+        } catch (Exception e) {
+            saveEvent(paymentEntity, paymentId, PaymentEventType.ERROR, statusFromMp,statusDetailFromMp, e.getMessage());
         }
     }
 
-    private void saveLog(PaymentEntity payment, String mpId, String outcome, String error) {
-        PaymentWebhookLog log = new PaymentWebhookLog();
-        log.setPayment(payment);
-        log.setMercadoPagoId(mpId);
-        log.setRawPayload("{}");
-        log.setProcessingOutcome(outcome);
-        log.setErrorMessage(error);
-        webhookLogRepository.save(log);
+    private void saveEvent(PaymentEntity payment, String mpId, PaymentEventType type,
+                           String statusFromMp, String statusDetailFromMp, String error) {
+        PaymentEvent event = new PaymentEvent();
+        event.setPayment(payment);
+        event.setMercadoPagoId(mpId);
+        event.setEventType(type);
+        event.setStatusFromMp(statusFromMp);
+        event.setStatusDetailFromMp(statusDetailFromMp);
+        event.setErrorMessage(error);
+        eventRepository.save(event);
     }
 }

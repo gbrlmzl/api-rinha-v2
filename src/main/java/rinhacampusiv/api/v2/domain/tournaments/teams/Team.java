@@ -112,6 +112,6 @@ public class Team {
     }
 
     public boolean isPendingPayment() {
-        return "PENDING_PAYMENT".equals(this.status);
+        return this.status == TeamStatus.PENDING_PAYMENT;
     }
 }

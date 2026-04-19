@@ -10,10 +10,10 @@ public enum PaymentStatusDetail {
     public static PaymentStatusDetail fromMercadoPago(String mpStatusDetail){
         if (mpStatusDetail == null) return WAITING_TRANSFER;
         return switch (mpStatusDetail.toLowerCase()) {
-            case "pending_waiting_transfer" -> WAITING_TRANSFER;
             case "accredited" -> ACCREDITED;
             case "expired" -> EXPIRED;
-            case "by_collector" -> CANCELED_BY_USER; //'cancelled' -> retorno da API do mercado pago
+            case "by_collector" -> CANCELED_BY_USER;
+            case "pending_waiting_transfer" -> WAITING_TRANSFER;
             default -> WAITING_TRANSFER;
         };
 

@@ -1,19 +1,20 @@
-package rinhacampusiv.api.v2.domain.tournaments.payments;
+package rinhacampusiv.api.v2.domain.tournaments.payments.events;
 
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "payment_webhook_logs")
+@Table(name = "payment_events")
 @Getter
 @Setter
 @NoArgsConstructor
-public class PaymentWebhookLog {
+public class PaymentEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,13 +30,17 @@ public class PaymentWebhookLog {
     @Column(name = "received_at", updatable = false)
     private OffsetDateTime receivedAt;
 
-    @Column(name = "raw_payload", nullable = false)
-    private String rawPayload;
+    @Column(name = "event_type", length = 30, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PaymentEventType eventType;
 
-    @Column(name = "processing_outcome", length = 20, nullable = false)
-    private String processingOutcome;  // "PROCESSED", "IGNORED", "ERROR"
+    @Column(name = "status_from_mp", length = 30)
+    private String statusFromMp;
 
-    @Column(name = "error_message")
+    @Column(name = "status_detail_from_mp", length = 50)
+    private String statusDetailFromMp;
+
+    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
     @PrePersist

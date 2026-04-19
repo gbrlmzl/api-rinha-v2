@@ -1,9 +1,13 @@
-package rinhacampusiv.api.v2.domain.tournaments.payments;
+package rinhacampusiv.api.v2.domain.tournaments.payments.events;
+
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatusDetail;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-public record PaymentLogData(
+public record PaymentEventData(
         Long paymentId,
         String mercadoPagoId,
         String uuid,
@@ -11,14 +15,14 @@ public record PaymentLogData(
         String captainUsername,
         BigDecimal value,
         PaymentStatus status,
-        String statusDetail,
+        PaymentStatusDetail statusDetail,
         OffsetDateTime createdAt,
         OffsetDateTime expiresAt,
         OffsetDateTime paidAt,
         String payer,
-        boolean hasRawLog
+        boolean hasEvents
 ) {
-    public PaymentLogData(PaymentEntity p, boolean hasRawLog) {
+    public PaymentEventData(PaymentEntity p, boolean hasEvents) {
         this(
                 p.getId(),
                 p.getMercadoPagoId(),
@@ -32,7 +36,7 @@ public record PaymentLogData(
                 p.getExpiresAt(),
                 p.getPaidAt(),
                 p.getPayer(),
-                hasRawLog
+                hasEvents
         );
     }
 }
