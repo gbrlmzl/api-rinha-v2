@@ -40,9 +40,11 @@ public class WebhookPaymentService {
             return;
         }
 
+        verifyPaymentService.verifyPayment(mpPayment);
+
         if ("approved".equals(mpPayment.getStatus())) {
             try {
-                verifyPaymentService.verifyPayment(mpPayment);
+
                 PaymentEntity paymentEntity = paymentRepository
                         .findByMercadoPagoId(String.valueOf(mpPayment.getId()))
                         .orElse(null);

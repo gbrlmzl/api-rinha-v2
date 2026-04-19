@@ -15,7 +15,7 @@ public class TournamentRetryRegisterValidatorTeamsNumberInTournament implements 
 
     @Override
     public void validate(Tournament tournament, Team team){
-        if(teamRepository.countByActiveTrueAndTournamentId(tournament.getId()) > 7){
+        if(teamRepository.countByActiveTrueAndTournamentId(tournament.getId()) >= tournament.getMaxTeams()){
             throw new ValidatorException("O número máximo de equipes cadastradas no torneio foi atingido");
         }
 

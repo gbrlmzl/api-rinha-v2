@@ -36,4 +36,16 @@ public class MercadoPagoService {
             //MercadoPagoPaymentException
         }
     }
+
+    //Explicar o fluxo da api do mercado pago que lança um erro caso a requisição de cancelamento falhe.
+    public boolean cancelPayment(String mercadoPagoId) {
+        try {
+            init();
+            paymentClient.cancel(Long.valueOf(mercadoPagoId));
+            return  true;
+
+        } catch (MPException | MPApiException e) {
+            return false;
+        }
+    }
 }

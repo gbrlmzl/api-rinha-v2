@@ -35,11 +35,13 @@ public class PaymentEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String uuid;
 
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    @Column(name = "status_detail", length = 100)
-    private String statusDetail;
+    @Column(name = "status_detail")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatusDetail statusDetail;
 
     @Column(name = "qr_code")
     private String qrCode;
@@ -65,7 +67,7 @@ public class PaymentEntity {
     public PaymentEntity(Payment data) {
         this.mercadoPagoId = String.valueOf(data.getId());
         this.status = PaymentStatus.fromMercadoPago(data.getStatus());
-        this.statusDetail = data.getStatusDetail();
+        this.statusDetail = PaymentStatusDetail.fromMercadoPago(data.getStatusDetail());
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
 
@@ -78,7 +80,7 @@ public class PaymentEntity {
     public PaymentEntity(Payment data, String payerName) {
         this.mercadoPagoId = String.valueOf(data.getId());
         this.status = PaymentStatus.fromMercadoPago(data.getStatus());
-        this.statusDetail = data.getStatusDetail();
+        this.statusDetail = PaymentStatusDetail.fromMercadoPago(data.getStatusDetail());
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
 
@@ -94,24 +96,29 @@ public class PaymentEntity {
     }
 
     public void approve(OffsetDateTime paidAt, String statusDetail) {
-        this.status = PaymentStatus.approved;
-        this.statusDetail = statusDetail;
+        this.status = PaymentStatus.APPROVED;
+        this.statusDetail = PaymentStatusDetail.fromMercadoPago(statusDetail);
         this.paidAt = paidAt;
     }
 
     public void expire() {
-        this.status = PaymentStatus.expired;
-        this.statusDetail = "expired";
+        this.status = PaymentStatus.CANCELED;
+        this.statusDetail = PaymentStatusDetail.EXPIRED;
+    }
+
+    public void cancel() {
+        this.status = PaymentStatus.CANCELED;
+        this.statusDetail = PaymentStatusDetail.CANCELED_BY_USER;
     }
 
     public boolean isPending() {
-        return this.status == PaymentStatus.pending;
+        return this.status == PaymentStatus.PENDING;
     }
 
-    
+
 
     public boolean isApproved() {
-        return this.status == PaymentStatus.approved;
+        return this.status == PaymentStatus.APPROVED;
     }
 
 }

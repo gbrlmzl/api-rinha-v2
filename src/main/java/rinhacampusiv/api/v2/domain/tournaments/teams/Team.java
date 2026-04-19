@@ -89,6 +89,14 @@ public class Team {
         this.players.forEach(player -> player.setActive(true));
     }
 
+    public void expiredPayment(){
+        this.setStatus(TeamStatus.EXPIRED_PAYMENT);
+    }
+
+    public void expiredPaymentProblem(){
+        this.setStatus(TeamStatus.EXPIRED_PAYMENT_PROBLEM);
+    }
+
     public void cancelPayment(){
         this.status = TeamStatus.CANCELED;
     }

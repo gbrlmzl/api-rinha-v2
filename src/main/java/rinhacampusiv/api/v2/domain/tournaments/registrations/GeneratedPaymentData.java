@@ -1,6 +1,5 @@
 package rinhacampusiv.api.v2.domain.tournaments.registrations;
 
-import com.mercadopago.resources.payment.Payment;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.utils.QrCodeUtil;
