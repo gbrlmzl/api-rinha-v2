@@ -45,4 +45,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     //verificar se existe equipes com o mesmo nome no mesmo torneio que não estejam canceladas
     Boolean existsByNameAndTournamentIdAndStatusNot(String name, Long tournamentId, TeamStatus status);
 
+    Optional<Team> findByCaptainIdAndTournamentIdAndStatusNot(Long captainId, Long tournamentId, TeamStatus status);
+
+    Boolean existsByNameAndTournamentIdAndIdNot(String name, Long tournamentId, Long teamId);
 }

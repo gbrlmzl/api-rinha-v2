@@ -5,5 +5,5 @@ public enum TeamStatus {
     EXPIRED_PAYMENT,
     READY,
     FINISHED,
-    CANCELLED
+    CANCELED
 }

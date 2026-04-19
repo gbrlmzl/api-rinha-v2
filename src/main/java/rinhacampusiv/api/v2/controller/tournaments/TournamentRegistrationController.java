@@ -29,12 +29,27 @@ public class TournamentRegistrationController {
     @PostMapping(value = "/{tournamentId}/registrations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GeneratedPaymentData> registerTeam(
             @PathVariable Long tournamentId,
-            @RequestPart("teamData")    @Valid TeamRegisterData teamData, //Opcional
+            @RequestPart(value = "teamData", required = false)    @Valid TeamRegisterData teamData, //Opcional
             @RequestPart("paymentData") @Valid PaymentRegistrationDataMercadoPago paymentData,
             @RequestPart(value = "teamShield", required = false) MultipartFile teamShield, //Opcional
             Authentication authentication) {
 
         // monta o TournamentRegistrationData internamente
+
+        if(teamData == null){
+            //Fluxo de recadastro de equipe existente
+            //var registrationData = new TournamentRetryRegistrationData(paymentData);
+            System.out.println("Caiu aqui");
+
+            GeneratedPaymentData retryResult = tournamentRegistrationService.retryRegisterTeam(tournamentId, paymentData, authentication);
+
+            URI uri = URI.create("/payments/" + retryResult.uuid());
+
+            return ResponseEntity.created(uri).body(retryResult);
+
+        }
+
+        System.out.println(teamData.teamName());
         var registrationData = new TournamentRegistrationData(teamData,paymentData);
 
         GeneratedPaymentData result = tournamentRegistrationService.registerTeam(

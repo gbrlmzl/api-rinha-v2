@@ -12,12 +12,14 @@ import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrat
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRegistrationStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.TournamentNotExistsException;
 import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
+import rinhacampusiv.api.v2.validators.tournamentRetryRegister.TournamentRetryRegisterValidator;
 import rinhacampusiv.api.v2.validators.tournamentTeamRegister.TournamentTeamRegisterValidator;
 
 import java.math.BigDecimal;
@@ -43,9 +45,33 @@ public class TournamentRegistrationService {
     private List<TournamentTeamRegisterValidator> tournamentTeamRegisterValidators;
 
     @Autowired
+    private List<TournamentRetryRegisterValidator> tournamentRetryRegisterValidators;
+
+    @Autowired
     private TournamentRepository tournamentRepository;
 
     //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
+
+
+    public GeneratedPaymentData retryRegisterTeam(Long tournamentId, PaymentRegistrationDataMercadoPago paymentData, Authentication authentication) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new TournamentNotExistsException("Torneio não encontrado"));
+
+        User captain = (User) authentication.getPrincipal();
+        //Encontrar equipe vinculada ao captain
+        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournamentId, TeamStatus.CANCELED);
+        if (team.isEmpty()) {
+            throw new RuntimeException("Não existe equipe cadastrada para retry");
+        }
+        //Como validar esse retry?
+
+        Team teamToRetry = team.get();
+
+        tournamentRetryRegisterValidators.forEach(v -> v.validate(tournament, teamToRetry));
+
+        return linkPaymentInTeam(teamToRetry, paymentData);
+
+    }
 
     public GeneratedPaymentData registerTeam(Long tournamentId, TournamentRegistrationData registrationData,
                                              MultipartFile teamShieldFile,
@@ -55,8 +81,6 @@ public class TournamentRegistrationService {
                 .orElseThrow(() -> new TournamentNotExistsException("Torneio não encontrado"));
 
         User captain = (User) authentication.getPrincipal();
-
-        //verifique se existe uma equipe vinculada a esse captain, true -> team == team encontrado : disparar exceção
 
         tournamentTeamRegisterValidators.forEach(v -> v.validate(registrationData, tournament));
 
@@ -83,35 +107,11 @@ public class TournamentRegistrationService {
     }
 
     public GeneratedPaymentData linkPaymentInTeam(Team teamToRegister, PaymentRegistrationDataMercadoPago paymentData) {
-        Optional<Team> teamOptional = teamRepository.findByIdWithPayments(
-                teamToRegister.getId());
-
-        /* Verificação não é mais necessária pois os validadores já verificam.
-
-        if (teamOptional.isPresent()) {
-            Team teamEntity = teamOptional.get();
-
-            PaymentEntity lastPayment = teamEntity.getPayments().getLast();
-            if (lastPayment.getStatus().equals("pending")) {
-
-                if (lastPayment.getExpiresAt().isAfter(OffsetDateTime.now().plusMinutes(10))) {
-                    return new GeneratedPaymentData(lastPayment);
-                }
-            }
-            if (lastPayment.getStatus().equals("PAGAMENTO REALIZADO")) {
-                return new GeneratedPaymentData(lastPayment);
-            }
-        }
-
-        */
 
         PaymentEntity newPayment = generateNewPayment(teamToRegister, paymentData);
         newPayment.linkTeam(teamToRegister);
         teamToRegister.paymentGenerated(newPayment);
 
-        //TODO ->
-        //Criar metodo para depois de 30 minutos verificar se o pagamento foi aprovado.
-        //Se foi, deixar como está. Se não foi, atualizar o status do PaymentEntity para Expired e o Status da equipe também
 
         teamRepository.save(teamToRegister);
         return new GeneratedPaymentData(newPayment);
@@ -145,7 +145,7 @@ public class TournamentRegistrationService {
     }
 
     public TournamentRegistrationStatus getRegistrationStatus(Long tournamentId, Authentication authentication) {
-        if(authentication == null){
+        if (authentication == null) {
             throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
         }
         User captain = (User) authentication.getPrincipal();
