@@ -3,7 +3,6 @@ package rinhacampusiv.api.v2.controller.tournaments;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -66,7 +65,7 @@ public class TournamentRegistrationController {
             @PathVariable Long tournamentId,
             @RequestParam String name) {
 
-        tournamentRegistrationService.existsTeamByName(tournamentId, name.trim());
+        tournamentRegistrationService.checkExistentTeamNameInTournament(tournamentId, name.trim());
         return ResponseEntity.noContent().build();
     }
 

@@ -4,7 +4,6 @@ import com.mercadopago.resources.payment.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
@@ -26,6 +25,7 @@ import rinhacampusiv.api.v2.validators.tournament.TeamRegister.TournamentTeamReg
 import rinhacampusiv.api.v2.validators.tournament.tournamentRetryRegister.TournamentRetryRegisterValidator;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,7 +64,7 @@ public class TournamentRegistrationService {
 
         User captain = (User) authentication.getPrincipal();
 
-        if (registrationData.teamData() == null && registrationData.paymentData() != null){
+        if (registrationData.teamData() == null && registrationData.paymentData() != null) {
             return retryRegisterTeam(tournament, captain, registrationData.paymentData(), authentication);
         }
 
@@ -84,7 +84,7 @@ public class TournamentRegistrationService {
         return linkPaymentInTeam(team, paymentData);
     }
 
-    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain,  PaymentRegistrationDataMercadoPago paymentData, Authentication authentication) {
+    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain, PaymentRegistrationDataMercadoPago paymentData, Authentication authentication) {
 
         //Encontrar equipe vinculada ao captain
         Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournament.getId(), TeamStatus.CANCELED);
@@ -157,8 +157,16 @@ public class TournamentRegistrationService {
         }
     }
 
-    public void existsTeamByName(Long tournamentId, String name){
-        if(teamRepository.existsByNameIgnoreCaseAndTournamentId(name, tournamentId)){
+    public void checkExistentTeamNameInTournament(Long tournamentId, String name) {
+        List<TeamStatus> status = Arrays.asList(
+                TeamStatus.EXPIRED_PAYMENT,
+                TeamStatus.EXPIRED_PAYMENT_PROBLEM,
+                TeamStatus.CANCELED
+        );
+
+        Boolean foundTeam = teamRepository.existsByNameAndTournamentIdAndStatusNotIn(name, tournamentId, status);
+
+        if (foundTeam) {
             throw new ValidatorException("Já existe uma equipe com esse nome");
         }
     }

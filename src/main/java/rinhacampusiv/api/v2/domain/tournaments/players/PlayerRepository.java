@@ -11,4 +11,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     Boolean existsBySchoolIdAndTeamTournamentIdAndTeamIdNot(String schoolId, Long tournamentId, Long teamId);
 
+    Boolean existsByNicknameAndTeamTournamentIdAndTeamIdNot(String playerNickName, Long tournamentId, Long teamId);
+
 }

@@ -66,4 +66,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findByCaptainIdAndTournamentIdAndStatusNot(Long captainId, Long tournamentId, TeamStatus status);
 
     Boolean existsByNameAndTournamentIdAndIdNot(String name, Long tournamentId, Long teamId);
+
+    Boolean existsByNameAndTournamentIdAndStatusNotIn(String name, Long tournamentId, List<TeamStatus> status);
+
 }

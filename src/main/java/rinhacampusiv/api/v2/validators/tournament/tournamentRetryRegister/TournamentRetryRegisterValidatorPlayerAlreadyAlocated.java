@@ -34,8 +34,8 @@ public class TournamentRetryRegisterValidatorPlayerAlreadyAlocated implements To
                         )
                 );
 
-            } else if (playerRepository.existsByNicknameAndTeamTournamentId(
-                    player.getName(), tournament.getId())) {
+            } else if (playerRepository.existsByNicknameAndTeamTournamentIdAndTeamIdNot(
+                    player.getName(), tournament.getId(), team.getId())) {
 
                 throw new ValidatorException(
                         String.format(
