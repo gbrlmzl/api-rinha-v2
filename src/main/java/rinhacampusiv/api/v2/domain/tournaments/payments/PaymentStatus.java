@@ -1,18 +1,17 @@
 package rinhacampusiv.api.v2.domain.tournaments.payments;
 
 public enum PaymentStatus {
-    PENDING,
-    APPROVED,
-    REJECTED,
-    EXPIRED;
+    pending,
+    approved,
+    expired;
 
     public static PaymentStatus fromMercadoPago(String mpStatus) {
-        if (mpStatus == null) return PENDING;
+        if (mpStatus == null) return pending;
         return switch (mpStatus.toLowerCase()) {
-            case "approved" -> APPROVED;
-            case "rejected", "cancelled" -> REJECTED;
-            case "expired" -> EXPIRED;
-            default -> PENDING;
+            case "approved" -> approved;
+            case "rejected", "cancelled" -> expired;
+            case "expired" -> expired;
+            default -> pending;
         };
     }
 }

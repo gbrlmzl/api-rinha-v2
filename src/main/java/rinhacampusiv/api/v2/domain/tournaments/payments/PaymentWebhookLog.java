@@ -29,7 +29,7 @@ public class PaymentWebhookLog {
     @Column(name = "received_at", updatable = false)
     private OffsetDateTime receivedAt;
 
-    @Column(name = "raw_payload", columnDefinition = "jsonb", nullable = false)
+    @Column(name = "raw_payload", nullable = false)
     private String rawPayload;
 
     @Column(name = "processing_outcome", length = 20, nullable = false)

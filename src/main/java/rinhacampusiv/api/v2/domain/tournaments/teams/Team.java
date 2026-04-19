@@ -80,6 +80,7 @@ public class Team {
 
     public void paymentGenerated(PaymentEntity payment) {
         this.payments.add(payment);
+        this.status = TeamStatus.PENDING_PAYMENT;
     }
 
     public void approvedPayment(){

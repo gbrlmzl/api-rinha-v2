@@ -56,7 +56,7 @@ public class EmitPaymentAPIService {
                 .transactionAmount(value)
                 .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
-                .dateOfExpiration(OffsetDateTime.now().plusMinutes(10))
+                .dateOfExpiration(OffsetDateTime.now().plusMinutes(15))
                 .notificationUrl("https://6da9-2804-9f8-4783-e3a0-19ff-20d4-7d62-8a86.ngrok-free.app/webhook?source_news=webhooks") //Notificações apenas via webhook
                 .payer(payerData)
                 .build();

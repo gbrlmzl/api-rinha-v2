@@ -14,6 +14,7 @@ public record GeneratedPaymentData(
         String statusDetailed,
         BigDecimal value,
         OffsetDateTime createdAt,
+        OffsetDateTime expiresAt,
         String uuid,
         String qrCode,
         String qrCodeBase64
@@ -28,6 +29,7 @@ public record GeneratedPaymentData(
                 data.getStatusDetail(),
                 data.getValue(),
                 data.getCreatedAt(),
+                data.getExpiresAt(),
                 data.getUuid(),
                 data.getQrCode(),
                 QrCodeUtil.generateBase64(data.getQrCode())

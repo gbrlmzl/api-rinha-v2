@@ -28,7 +28,7 @@ public class PaymentExpirationJob {
                     .filter(p -> p.isPending() && p.getExpiresAt().isBefore(OffsetDateTime.now()))
                     .forEach(p -> {
                         p.expire();
-                        team.setStatus(TeamStatus.CANCELED);
+                        team.setStatus(TeamStatus.EXPIRED_PAYMENT);
                     });
             teamRepository.save(team);
         });

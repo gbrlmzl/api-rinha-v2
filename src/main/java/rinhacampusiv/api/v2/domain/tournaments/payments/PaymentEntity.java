@@ -94,27 +94,24 @@ public class PaymentEntity {
     }
 
     public void approve(OffsetDateTime paidAt, String statusDetail) {
-        this.status = PaymentStatus.APPROVED;
+        this.status = PaymentStatus.approved;
         this.statusDetail = statusDetail;
         this.paidAt = paidAt;
     }
 
     public void expire() {
-        this.status = PaymentStatus.EXPIRED;
+        this.status = PaymentStatus.expired;
         this.statusDetail = "expired";
     }
 
     public boolean isPending() {
-        return this.status == PaymentStatus.PENDING;
+        return this.status == PaymentStatus.pending;
     }
 
-    public void reject(String statusDetail) {
-        this.status = PaymentStatus.REJECTED;
-        this.statusDetail = statusDetail;
-    }
+    
 
     public boolean isApproved() {
-        return this.status == PaymentStatus.APPROVED;
+        return this.status == PaymentStatus.approved;
     }
 
 }
