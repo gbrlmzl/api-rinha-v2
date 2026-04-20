@@ -1,11 +1,16 @@
 package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
 
+
+
+import jakarta.annotation.Nullable;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.UserTeamStatusData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public record TournamentPublicDetailData(
         Long id,
@@ -19,9 +24,11 @@ public record TournamentPublicDetailData(
         BigDecimal prizePool,
         OffsetDateTime startsAt,
         OffsetDateTime endsAt,
-        String imageUrl
+        String imageUrl,
+        List<TeamPublicData> confirmedTeams,
+        UserTeamStatusData userTeam
 ) {
-    public TournamentPublicDetailData(Tournament tournament, Integer confirmedTeamsCount){
+    public TournamentPublicDetailData(Tournament tournament, Integer confirmedTeamsCount, List<TeamPublicData> confirmedTeams, UserTeamStatusData userTeam){
         this(
                 tournament.getId(),
                 tournament.getName(),
@@ -34,7 +41,9 @@ public record TournamentPublicDetailData(
                 tournament.getPrizePool(),
                 tournament.getStartsAt(),
                 tournament.getEndsAt(),
-                tournament.getImageUrl()
+                tournament.getImageUrl(),
+                confirmedTeams,
+                userTeam
         );
     }
 }

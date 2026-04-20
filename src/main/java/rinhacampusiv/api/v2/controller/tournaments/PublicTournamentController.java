@@ -6,12 +6,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicDetailData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
-import rinhacampusiv.api.v2.service.tournament.PublicTournamentsService;
+import rinhacampusiv.api.v2.domain.user.User;
+import rinhacampusiv.api.v2.service.tournament.PublicTournamentService;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ import java.util.List;
 public class PublicTournamentController {
 
     @Autowired
-    private PublicTournamentsService publicService;
+    private PublicTournamentService publicService;
 
     //Listagem Pública
     //Implementar a verificação para a seção de torneios FINISHED(Hall of Fame, No Service)
@@ -35,8 +37,12 @@ public class PublicTournamentController {
 
     // Detalhe público
     @GetMapping("/{id}")
-    public ResponseEntity<TournamentPublicDetailData> getTournament(@PathVariable Long id) {
-        return ResponseEntity.ok(publicService.getPublicTournamentView(id));
+    public ResponseEntity<TournamentPublicDetailData> getTournament(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        Long userId = authentication != null ? ((User) authentication.getPrincipal()).getId() : null;
+        return ResponseEntity.ok(publicService.getPublicTournamentView(id, userId));
     }
 
 }

@@ -13,7 +13,8 @@ import java.util.Comparator;
 
 public record MyTournamentsSummaryData(
         Long id,
-        String name,
+        String tournamentName,
+        String teamName,
         TournamentGame game,
         TournamentStatus status,
         TeamStatus teamStatus,
@@ -25,6 +26,7 @@ public record MyTournamentsSummaryData(
         this(
                 tournament.getId(),
                 tournament.getName(),
+                team.getName(),
                 tournament.getGame(),
                 tournament.getStatus(),
                 team.getStatus(),

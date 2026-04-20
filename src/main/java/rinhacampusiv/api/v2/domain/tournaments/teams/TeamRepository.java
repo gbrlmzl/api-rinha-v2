@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface TeamRepository extends JpaRepository<Team, Long> {
@@ -48,6 +49,13 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     Integer countByTournamentId(Long id);
 
+    @Query("SELECT t.tournament.id, COUNT(t.id) FROM Team t " +
+            "WHERE t.tournament.id IN :ids AND t.status = :status GROUP BY t.tournament.id")
+    List<Object[]> countByTournamentIdsAndStatus(@Param("ids") List<Long> ids, @Param("status") TeamStatus status);
+
+    @Query("SELECT t FROM Team t JOIN FETCH t.players JOIN FETCH t.captain " +
+            "WHERE t.tournament.id = :id AND t.status = 'READY'")
+    List<Team> findReadyTeamsWithDetails(@Param("id") Long tournamentId);
 
     //verificar se existe equipes com o mesmo nome no mesmo torneio que não estejam canceladas
     Boolean existsByNameAndTournamentIdAndStatusNot(String name, Long tournamentId, TeamStatus status);
