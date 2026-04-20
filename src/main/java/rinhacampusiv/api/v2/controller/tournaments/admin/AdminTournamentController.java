@@ -49,7 +49,6 @@ public class AdminTournamentController {
     }
 
     @PutMapping("/{tournamentId}")
-    @Transactional
     public ResponseEntity<TournamentAdminDetailData> updateTournament(
             @PathVariable Long tournamentId,
             @RequestBody @Valid TournamentUpdateData data) {
@@ -58,8 +57,7 @@ public class AdminTournamentController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{tournamentId}")
-    @Transactional
+    @PatchMapping("/{tournamentId}")
     public ResponseEntity<Void> deleteTournament(
             @PathVariable Long tournamentId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {

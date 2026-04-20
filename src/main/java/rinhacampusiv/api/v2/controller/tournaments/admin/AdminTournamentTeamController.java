@@ -1,7 +1,6 @@
 package rinhacampusiv.api.v2.controller.tournaments.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,7 +26,6 @@ public class AdminTournamentTeamController {
     }
 
     @DeleteMapping("/{teamId}")
-    @Transactional
     public ResponseEntity<Void> banTeam(
             @PathVariable Long tournamentId,
             @PathVariable Long teamId) {

@@ -1,7 +1,9 @@
 package rinhacampusiv.api.v2.domain.activation;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import rinhacampusiv.api.v2.domain.user.User;
 
 import java.time.OffsetDateTime;

@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.*;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicDetailData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
 
@@ -34,24 +37,12 @@ public class PublicTournamentsService {
             throw new EntityNotFoundException("Torneio não disponível");
         }
 
-        String currentUserEmail = getCurrentUserEmail();
-        boolean isRegistered = false;
-
-        if (currentUserEmail != null) {
-            isRegistered = teamRepository.existsByTournamentIdAndUserEmail(id, currentUserEmail);
-        }
-
-        long confirmedTeams = countTeams(tournament);
-        return new TournamentPublicDetailData(tournament, confirmedTeams, isRegistered);
+        Integer confirmedTeams = countTeams(tournament);
+        return new TournamentPublicDetailData(tournament, confirmedTeams);
     }
 
-    private String getCurrentUserEmail() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth instanceof AnonymousAuthenticationToken) return null;
-        return auth.getName();
-    }
 
-    private long countTeams(Tournament t) {
+    private Integer countTeams(Tournament t) {
         return teamRepository.countByTournamentIdAndStatus(t.getId(), TeamStatus.READY);
     }
 
@@ -61,4 +52,3 @@ public class PublicTournamentsService {
                 .map(t -> new TournamentPublicSummaryData(t, countTeams(t)));
     }
 }
-

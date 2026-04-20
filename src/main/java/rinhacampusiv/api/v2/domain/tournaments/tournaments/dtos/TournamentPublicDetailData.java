@@ -14,14 +14,14 @@ public record TournamentPublicDetailData(
         String rulesUrl,
         TournamentGame game,
         TournamentStatus status,
-        String teamsRegistered, // Formato "16/32"
+        Integer confirmedTeamsCount,
+        Integer maxTeams,
         BigDecimal prizePool,
         OffsetDateTime startsAt,
         OffsetDateTime endsAt,
-        String imageUrl,
-        boolean isUserRegistered
+        String imageUrl
 ) {
-    public TournamentPublicDetailData(Tournament tournament, long confirmedTeamsCount, boolean isUserRegistered){
+    public TournamentPublicDetailData(Tournament tournament, Integer confirmedTeamsCount){
         this(
                 tournament.getId(),
                 tournament.getName(),
@@ -29,12 +29,12 @@ public record TournamentPublicDetailData(
                 tournament.getRulesUrl(),
                 tournament.getGame(),
                 tournament.getStatus(),
-                confirmedTeamsCount + "/" + tournament.getMaxTeams(),
+                confirmedTeamsCount,
+                tournament.getMaxTeams(),
                 tournament.getPrizePool(),
                 tournament.getStartsAt(),
                 tournament.getEndsAt(),
-                tournament.getImageUrl(),
-                isUserRegistered
+                tournament.getImageUrl()
         );
     }
 }

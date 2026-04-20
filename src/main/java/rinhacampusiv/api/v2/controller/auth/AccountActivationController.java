@@ -4,9 +4,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rinhacampusiv.api.v2.domain.activation.ActivateRequestDTO;
 import rinhacampusiv.api.v2.domain.activation.ResendRequestDTO;
-import rinhacampusiv.api.v2.service.AccountActivationService;
+import rinhacampusiv.api.v2.service.user.AccountActivationService;
 
 import java.util.Map;
 

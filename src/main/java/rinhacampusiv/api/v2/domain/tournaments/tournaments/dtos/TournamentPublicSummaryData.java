@@ -12,19 +12,21 @@ public record TournamentPublicSummaryData(
         String name,
         TournamentGame game,
         TournamentStatus status,
-        String teamsRegistered, // Formato "16/32"
+        Integer confirmedTeamsCount,
+        Integer maxTeams,
         OffsetDateTime startsAt,
         BigDecimal prizePool,
         String imageUrl,
         String rulesUrl
 ) {
-    public TournamentPublicSummaryData(Tournament tournament, long confirmedTeamsCount){
+    public TournamentPublicSummaryData(Tournament tournament, int confirmedTeamsCount){
         this(
                 tournament.getId(),
                 tournament.getName(),
                 tournament.getGame(),
                 tournament.getStatus(),
-                confirmedTeamsCount + "/" + tournament.getMaxTeams(),
+                confirmedTeamsCount,
+                tournament.getMaxTeams(),
                 tournament.getStartsAt(),
                 tournament.getPrizePool(),
                 tournament.getImageUrl(),

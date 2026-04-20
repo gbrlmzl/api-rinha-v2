@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
-import rinhacampusiv.api.v2.service.tournament.MyTournamentsService;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.MyTournamentsSummaryData;
+import rinhacampusiv.api.v2.service.tournament.registration.MyTournamentsService;
 
 @RestController
 @RequestMapping("/tournaments/me")
@@ -23,7 +23,7 @@ public class MyTournamentController {
     private MyTournamentsService myTournamentsService;
 
     @GetMapping
-    public ResponseEntity<Page<TournamentPublicSummaryData>> getMyTournaments(
+    public ResponseEntity<Page<MyTournamentsSummaryData>> getMyTournaments(
             @RequestParam TournamentGame game,
             @PageableDefault(size = 12, sort = "startsAt", direction = Sort.Direction.ASC) Pageable pageable,
             Authentication authentication) {

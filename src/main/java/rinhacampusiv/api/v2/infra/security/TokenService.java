@@ -5,15 +5,13 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
-import rinhacampusiv.api.v2.domain.user.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
+import rinhacampusiv.api.v2.domain.user.User;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Optional;
 
 @Service
 public class TokenService {

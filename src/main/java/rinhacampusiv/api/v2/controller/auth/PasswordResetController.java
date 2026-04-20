@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.passwordReset.NewPasswordRequest;
 import rinhacampusiv.api.v2.domain.passwordReset.PasswordResetRequest;
-import rinhacampusiv.api.v2.service.PasswordResetService;
+import rinhacampusiv.api.v2.service.user.PasswordResetService;
 
 import java.util.Map;
 

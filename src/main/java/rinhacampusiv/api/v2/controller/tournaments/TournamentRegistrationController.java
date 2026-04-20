@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentData;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatus;
-import rinhacampusiv.api.v2.service.TournamentRegistrationService;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
+import rinhacampusiv.api.v2.service.tournament.registration.TournamentRegistrationService;
 
 import java.net.URI;
 
@@ -47,7 +47,7 @@ public class TournamentRegistrationController {
     }
 
     @GetMapping(value = "/{tournamentId}/registrations")
-    public ResponseEntity<TournamentRegistrationStatus> registrationStatus(
+    public ResponseEntity<TournamentRegistrationStatusData> registrationStatus(
             @PathVariable Long tournamentId,
             Authentication authentication) {
 

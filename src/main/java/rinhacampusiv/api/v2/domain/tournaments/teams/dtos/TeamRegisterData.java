@@ -4,7 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PlayerRegisterData;
+
 import java.util.List;
 
 public record TeamRegisterData(

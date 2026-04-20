@@ -1,12 +1,11 @@
 package rinhacampusiv.api.v2.domain.userAuthProvider;
-import rinhacampusiv.api.v2.domain.user.User;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import rinhacampusiv.api.v2.domain.user.User;
 
 import java.time.LocalDateTime;
 

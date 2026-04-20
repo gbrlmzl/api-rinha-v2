@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface TeamRepository extends JpaRepository<Team, Long> {
 
     // Conta equipes ativas em um torneio — útil para validar se o torneio ainda tem vagas
-    Long countByActiveTrueAndTournamentId(Long tournamentId);
+    Integer countByActiveTrueAndTournamentId(Long tournamentId);
 
     // Verifica se já existe equipe com o mesmo nome no mesmo torneio
     Boolean existsByNameAndTournamentId(String name, Long tournamentId);
@@ -44,9 +44,9 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     @Query("SELECT t FROM Team t JOIN FETCH t.payments WHERE t.status = 'PENDING_PAYMENT' ")
     List<Team> findAllPendingPayments();
 
-    long countByTournamentIdAndStatus(Long tournamentId, TeamStatus status);
+    Integer countByTournamentIdAndStatus(Long tournamentId, TeamStatus status);
 
-    long countByTournamentId(Long id);
+    Integer countByTournamentId(Long id);
 
 
     //verificar se existe equipes com o mesmo nome no mesmo torneio que não estejam canceladas

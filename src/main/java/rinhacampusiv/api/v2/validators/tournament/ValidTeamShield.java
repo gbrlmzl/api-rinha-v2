@@ -2,7 +2,7 @@ package rinhacampusiv.api.v2.validators.tournament;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import rinhacampusiv.api.v2.validators.tournament.TeamRegister.TeamShieldValidator;
+import rinhacampusiv.api.v2.validators.tournament.team.register.TeamShieldValidator;
 
 import java.lang.annotation.*;
 

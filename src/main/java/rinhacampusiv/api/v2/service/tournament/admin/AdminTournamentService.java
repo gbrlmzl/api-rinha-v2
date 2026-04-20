@@ -10,14 +10,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.*;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminDetailData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
-import rinhacampusiv.api.v2.validators.tournament.TournamentCreation.TournamentCreationValidator;
-import rinhacampusiv.api.v2.validators.tournament.TournamentUpdate.TournamentUpdateValidator;
+import rinhacampusiv.api.v2.validators.tournament.creation.TournamentCreationValidator;
+import rinhacampusiv.api.v2.validators.tournament.update.TournamentUpdateValidator;
 
 import java.util.List;
 
@@ -61,7 +64,7 @@ public class AdminTournamentService {
         }
 
         return tournamentsPage.map(tournament -> {
-            long confirmedTeams = teamRepository.countByTournamentIdAndStatus(tournament.getId(), TeamStatus.READY);
+            Integer confirmedTeams = teamRepository.countByTournamentIdAndStatus(tournament.getId(), TeamStatus.READY);
             return new TournamentAdminSummaryData(tournament, confirmedTeams);
         });
     }
@@ -89,7 +92,7 @@ public class AdminTournamentService {
     public void cancelTournament(Long id, boolean force) {
         Tournament tournament = findTournamentById(id);
 
-        long totalTeams = teamRepository.countByTournamentId(id);
+        Integer totalTeams = teamRepository.countByTournamentId(id);
 
         // Se tem equipes e a confirmação NÃO foi enviada, bloqueia e avisa
         if (totalTeams > 0 && !force) {

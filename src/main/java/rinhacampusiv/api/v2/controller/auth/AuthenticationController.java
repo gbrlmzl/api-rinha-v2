@@ -9,13 +9,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import rinhacampusiv.api.v2.domain.user.*;
-
-import rinhacampusiv.api.v2.service.UserService;
+import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
+import rinhacampusiv.api.v2.domain.user.LoginData;
+import rinhacampusiv.api.v2.domain.user.RegisterData;
+import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
+import rinhacampusiv.api.v2.service.user.UserService;
 import rinhacampusiv.api.v2.service.authentication.UserAuthService;
 import rinhacampusiv.api.v2.service.authentication.UserRegisterService;
 
-import java.util.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")

@@ -2,7 +2,10 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments;
 
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
 

@@ -3,16 +3,19 @@ package rinhacampusiv.api.v2.domain.tournaments.teams;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.players.Player;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PlayerRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamUpdateData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
-import rinhacampusiv.api.v2.domain.tournaments.players.Player;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
 import rinhacampusiv.api.v2.domain.user.User;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 
 

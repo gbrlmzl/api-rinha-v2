@@ -1,8 +1,6 @@
 package rinhacampusiv.api.v2.service.tournament.admin;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
-import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;

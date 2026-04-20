@@ -15,7 +15,6 @@ import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
