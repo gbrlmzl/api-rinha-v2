@@ -59,7 +59,9 @@ public class ImgurAPIService {
             boolean success = root.path("success").asBoolean(false);
             if (!success) {
                 String errorMsg = root.path("data").path("error").asText("Erro desconhecido");
-                throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
+                //throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
+                //Salvar logo dizendo que deu errado para auditoria
+                //return null
 
             }
 
