@@ -115,6 +115,10 @@ public class PaymentEntity {
         return this.status == PaymentStatus.PENDING;
     }
 
+    public boolean isCanceled() {
+        return this.status == PaymentStatus.CANCELED;
+    }
+
 
 
     public boolean isApproved() {

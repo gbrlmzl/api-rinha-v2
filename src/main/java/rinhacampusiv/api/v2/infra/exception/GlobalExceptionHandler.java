@@ -130,6 +130,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(TeamNotFoundException.class)
+    public ResponseEntity<?> tratarEquipeNaoEncontrada(Exception ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(SendEmailException.class)
     public void tratarErroNoEnvioDoEmail(){
             //O fluxo não deve ser interrompido.
@@ -171,6 +177,12 @@ public class GlobalExceptionHandler {
 
 
     //==================================================================================================================
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> tratarErroIllegalStateException(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // 404 genérico (JPA)
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> tratarErro404(Exception ex) {

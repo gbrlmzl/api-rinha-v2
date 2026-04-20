@@ -9,8 +9,10 @@ import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import rinhacampusiv.api.v2.domain.mercadoPago.MercadoPagoService;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
 import rinhacampusiv.api.v2.infra.exception.MercadoPagoPaymentException;
 
@@ -22,10 +24,12 @@ import java.util.UUID;
 
 
 @Service
-public class EmitPaymentAPIService {
+public class PaymentAPIManagerService {
 
     @Value("${mercadopago.access.token}")
     private String accessToken;
+
+
 
     public Payment emitPayment (PaymentRegistrationDataMercadoPago data, BigDecimal value){
         MercadoPagoConfig.setAccessToken(accessToken);
@@ -73,8 +77,5 @@ public class EmitPaymentAPIService {
         } catch (MPException e) {
             throw new MercadoPagoPaymentException("Erro inesperado ao processar pagamento");
         }
-
-
-
     }
 }

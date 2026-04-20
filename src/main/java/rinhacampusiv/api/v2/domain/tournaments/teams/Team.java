@@ -101,6 +101,10 @@ public class Team {
         this.status = TeamStatus.CANCELED;
     }
 
+    public void cancelByUser(){
+        this.status = TeamStatus.CANCELED;
+    }
+
     public void updateData(TeamUpdateData data) {
         if (data.teamName() != null)      this.name      = data.teamName();
         if (data.shieldUrl() != null) this.shieldUrl = data.shieldUrl();

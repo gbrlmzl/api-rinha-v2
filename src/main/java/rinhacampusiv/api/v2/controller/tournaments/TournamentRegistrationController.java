@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.UpdatedTeamData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamDataUpdateDTO;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatus;
 import rinhacampusiv.api.v2.service.TournamentRegistrationService;
@@ -44,6 +46,17 @@ public class TournamentRegistrationController {
         URI uri = URI.create("/payments/" + result.uuid());
 
         return ResponseEntity.created(uri).body(result);
+    }
+
+    @PutMapping(value = "/{tournamentId}/registrations")
+    public ResponseEntity<UpdatedTeamData> cancelRegistration(
+            @RequestBody @Valid TeamDataUpdateDTO updateData,
+            @PathVariable Long tournamentId,
+            Authentication authentication
+
+            ) {
+        UpdatedTeamData updatedTeam = tournamentRegistrationService.updateTeam(tournamentId,updateData, authentication);
+        return ResponseEntity.ok(updatedTeam);
     }
 
     @GetMapping(value = "/{tournamentId}/registrations")
