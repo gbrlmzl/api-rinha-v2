@@ -1,29 +1,38 @@
 package rinhacampusiv.api.v2.domain.tournaments.registrations.response;
 
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatusDetail;
 import rinhacampusiv.api.v2.utils.QrCodeUtil;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 public record GeneratedPaymentData(
+        String mercadoPagoPaymentId,
+        PaymentStatus status,
+        PaymentStatusDetail statusDetailed,
+        BigDecimal value,
+        OffsetDateTime createdAt,
+        OffsetDateTime expiresAt,
         String uuid,
         String qrCode,
-        String qrCodeBase64,
-        BigDecimal value,
-        OffsetDateTime expiresAt
-
+        String qrCodeBase64
 
 ) {
 
 
-    public GeneratedPaymentData(PaymentEntity payment) {
+    public GeneratedPaymentData(PaymentEntity data) {
         this(
-                payment.getUuid(),
-                payment.getQrCode(),
-                QrCodeUtil.generateBase64(payment.getQrCode()),
-                payment.getValue(),
-                payment.getExpiresAt()
+                String.valueOf(data.getId()),
+                data.getStatus(),
+                data.getStatusDetail(),
+                data.getValue(),
+                data.getCreatedAt(),
+                data.getExpiresAt(),
+                data.getUuid(),
+                data.getQrCode(),
+                QrCodeUtil.generateBase64(data.getQrCode())
 
         );
     }
