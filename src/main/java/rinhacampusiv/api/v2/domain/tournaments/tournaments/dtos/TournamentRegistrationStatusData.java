@@ -2,30 +2,22 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
 
 import jakarta.validation.constraints.NotNull;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 public record TournamentRegistrationStatusData(
-        @NotNull
-        boolean registered,
+        CheckRegistrationData registrationData,
+        GeneratedPaymentData paymentData
 
-        //Payment data
-        TeamStatus teamStatus,
-        String uuid,
-        BigDecimal value,
-        String qrCode,
-        String qrCodeBase64,
-        OffsetDateTime expiresAt
 
 ) {
-        public TournamentRegistrationStatusData(boolean registered) {
-        this(registered, null, null, null, null, null, null);
+
+    public TournamentRegistrationStatusData(CheckRegistrationData registrationData) {
+        this(registrationData, null);
     }
 
-    public TournamentRegistrationStatusData(boolean registered, TeamStatus teamStatus) {
-        this(registered, teamStatus, null, null, null, null, null);
-    }
 
 }

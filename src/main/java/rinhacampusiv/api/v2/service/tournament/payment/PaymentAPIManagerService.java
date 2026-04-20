@@ -57,7 +57,7 @@ public class PaymentAPIManagerService {
                 .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
                 .dateOfExpiration(OffsetDateTime.now().plusMinutes(6))
-                .notificationUrl("https://6da9-2804-9f8-4783-e3a0-19ff-20d4-7d62-8a86.ngrok-free.app/webhook?source_news=webhooks") //Notificações apenas via webhook
+                .notificationUrl("https://b1d9-2804-9f8-4783-e3a0-dd84-c9f8-fa02-eb80.ngrok-free.app/webhook?source_news=webhooks") //Notificações apenas via webhook
                 .payer(payerData)
                 .build();
 
