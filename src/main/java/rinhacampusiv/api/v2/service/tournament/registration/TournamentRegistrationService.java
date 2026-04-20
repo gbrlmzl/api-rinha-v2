@@ -7,21 +7,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.CancelRegistrationDto;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.CanceledTeamData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
 import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.infra.exception.TournamentNotExistsException;
-import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
-import rinhacampusiv.api.v2.infra.exception.ValidatorException;
-import rinhacampusiv.api.v2.service.tournament.payment.PaymentCreationService;
+import rinhacampusiv.api.v2.infra.exception.*;
+import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
+import rinhacampusiv.api.v2.service.tournament.payment.PaymentAPIManagerService;
 import rinhacampusiv.api.v2.infra.external.ImgurClient;
 import rinhacampusiv.api.v2.validators.tournament.team.register.TournamentTeamRegisterValidator;
 import rinhacampusiv.api.v2.validators.tournament.team.register.retry.TournamentRetryRegisterValidator;
@@ -37,7 +38,7 @@ import static rinhacampusiv.api.v2.utils.QrCodeUtil.generateBase64;
 public class TournamentRegistrationService {
 
     @Autowired
-    private PaymentCreationService paymentCreationService;
+    private PaymentAPIManagerService paymentAPIManagerService;
 
     @Autowired
     private ImgurClient imgurClient;
@@ -54,6 +55,9 @@ public class TournamentRegistrationService {
     @Autowired
     private TournamentRepository tournamentRepository;
 
+    @Autowired
+    private MercadoPagoClient mercadoPagoClient;
+
     //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
 
 
@@ -62,7 +66,7 @@ public class TournamentRegistrationService {
                                              Authentication authentication) {
 
         Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new TournamentNotExistsException("Torneio não encontrado"));
+                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
 
         User captain = (User) authentication.getPrincipal();
 
@@ -120,7 +124,7 @@ public class TournamentRegistrationService {
         BigDecimal value = calculateRegistatrionPrice(team.getPlayers().size());
 
 
-        Payment generatedPayment = paymentCreationService.emitPayment(paymentData, value);
+        Payment generatedPayment = paymentAPIManagerService.emitPayment(paymentData, value);
 
         return new PaymentEntity(generatedPayment, payerName);
 
@@ -148,16 +152,58 @@ public class TournamentRegistrationService {
                 String qrCode = payment.getQrCode();
                 String qrCodeBase64 = generateBase64(qrCode);
 
-                return new TournamentRegistrationStatusData(true, paymentStatus, payment.getUuid(), payment.getValue(), qrCode, qrCodeBase64, payment.getExpiresAt());
-
+                return new TournamentRegistrationStatusData(true, team.get().getStatus(), payment.getUuid(), payment.getValue(), qrCode, qrCodeBase64, payment.getExpiresAt());
             } else {
-                return new TournamentRegistrationStatusData(true, paymentStatus);
+                return new TournamentRegistrationStatusData(true, team.get().getStatus());
             }
 
         } else {
             return new TournamentRegistrationStatusData(false);
         }
     }
+
+
+    public CanceledTeamData updateTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication){
+        if (authentication == null) {
+            throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
+        }
+
+        User captain = (User) authentication.getPrincipal();
+
+        if (captain == null) {
+            throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
+        }
+        if(!updateDTO.cancelRegistration()){
+            throw new IllegalStateException("Operação não permitida");
+        }
+
+        Optional<Team> optionalTeam = teamRepository.findByCaptainIdAndTournamentId(captain.getId(), tournamentId);
+        if(optionalTeam.isEmpty()){
+            throw new TeamNotFoundException("Não foi encontrada nenhuma equipe cadastrada para cancelar!");
+        }
+
+        Team teamToCancel = optionalTeam.get();
+        PaymentEntity paymentToCancel = teamToCancel.getPayments().getLast();
+
+        if(!paymentToCancel.isCanceled()){
+            //Se o pagamento ainda não estiver com o status de cancelado, quer dizer que o pagamento do mercadoPago ainda está funcionando.
+            //Nesse cenário, deve-se cancelar o pagamento do mercadoPago manualmente.
+            boolean response = mercadoPagoClient.cancelPayment(paymentToCancel.getMercadoPagoId());
+
+            if(!response){
+                //Log de Falha ao atualizar
+                throw new MercadoPagoPaymentException("Erro ao cancelar a inscrição. Tente novamente mais tarde");
+            }
+            paymentToCancel.cancelByUser();
+
+        }
+
+        teamToCancel.cancelByUser();
+        teamRepository.save(teamToCancel);
+
+        return new CanceledTeamData(teamToCancel);
+    }
+
 
     public void checkExistentTeamNameInTournament(Long tournamentId, String name) {
         List<TeamStatus> status = Arrays.asList(
@@ -174,6 +220,10 @@ public class TournamentRegistrationService {
     }
 
 
+
+
+
+    //Auxiliares
     private BigDecimal calculateRegistatrionPrice(Integer playersAmount) {
         BigDecimal value;
         if (playersAmount == 5) {

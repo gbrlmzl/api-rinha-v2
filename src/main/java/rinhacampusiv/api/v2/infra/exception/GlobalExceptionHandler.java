@@ -90,6 +90,14 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(TeamNotFoundException.class)
+    public ResponseEntity<?> tratarEquipeInexistente(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+
+    }
+
     @ExceptionHandler(ImgurUploadException.class)
     public void tratarErroUploadImgur(Exception ex){
         //Não deve parar o fluxo de cadastro, apenas avisar que houve um erro no upload do escudo.
@@ -150,7 +158,7 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(TournamentNotExistsException.class)
+    @ExceptionHandler(TournamentNotFoundException.class)
     public ResponseEntity<?> tratarTorneioNaoEncontrado(Exception ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
@@ -166,6 +174,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleTournamentFull(TournamentFullException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> tratarErroIllegalStateException(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
 

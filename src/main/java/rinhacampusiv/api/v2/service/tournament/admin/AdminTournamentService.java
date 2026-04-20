@@ -18,6 +18,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
+import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 import rinhacampusiv.api.v2.validators.tournament.creation.TournamentCreationValidator;
 import rinhacampusiv.api.v2.validators.tournament.update.TournamentUpdateValidator;
@@ -72,7 +73,7 @@ public class AdminTournamentService {
     @Transactional(readOnly = true)
     public TournamentAdminDetailData getTournamentById(Long id) {
         Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
+                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
 
         return new TournamentAdminDetailData(tournament);
     }
@@ -113,6 +114,6 @@ public class AdminTournamentService {
 
     private Tournament findTournamentById(Long id) {
         return tournamentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
+                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
     }
 }

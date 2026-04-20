@@ -23,6 +23,7 @@ public class PublicTournamentController {
     private PublicTournamentsService publicService;
 
     //Listagem Pública
+    //Implementar a verificação para a seção de torneios FINISHED(Hall of Fame, No Service)
     @GetMapping
     public ResponseEntity<Page<TournamentPublicSummaryData>> listTournaments(
             @RequestParam TournamentGame game,

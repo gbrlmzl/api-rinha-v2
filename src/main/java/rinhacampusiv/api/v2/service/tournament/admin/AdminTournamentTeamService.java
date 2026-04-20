@@ -9,11 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
+import rinhacampusiv.api.v2.infra.exception.TeamNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
+import rinhacampusiv.api.v2.validators.tournament.team.ban.TournamentTeamBanValidator;
+
+import java.util.List;
 
 @Service
 public class AdminTournamentTeamService {
@@ -24,20 +30,18 @@ public class AdminTournamentTeamService {
     @Autowired
     private TournamentRepository tournamentRepository;
 
+    @Autowired
+    List<TournamentTeamBanValidator> tournamentTeamBanValidators;
+
     @Transactional(readOnly = true)
     public Page<TeamAdminSummaryData> listTeams(Long tournamentId, Pageable pageable) {
 
         findTournamentById(tournamentId);
 
         return teamRepository.findByTournamentId(tournamentId, pageable)
-                .map(team -> {
-                    PaymentStatus lastStatus = team.getPayments().isEmpty()
-                            ? null
-                            : team.getPayments().getLast().getStatus();
+                .map(TeamAdminSummaryData::new);
+        }
 
-                    return new TeamAdminSummaryData(team);
-                });
-    }
 
     @Transactional
     public void banTeam(Long tournamentId, Long teamId) {
@@ -47,12 +51,10 @@ public class AdminTournamentTeamService {
             throw new ValidatorException("Não é possível banir equipes de um torneio encerrado.");
         }
 
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Equipe não encontrada"));
+        tournamentTeamBanValidators.forEach(validator -> validator.validar(tournament, teamId));
 
-        if (!team.getTournament().getId().equals(tournamentId)) {
-            throw new EntityNotFoundException("Equipe não pertence a este torneio");
-        }
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("Equipe não encontrada"));
 
         boolean teamWasActive = team.isActive();
 
@@ -68,7 +70,8 @@ public class AdminTournamentTeamService {
 
     private Tournament findTournamentById(Long id) {
         return tournamentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
+                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
     }
 
 }
+

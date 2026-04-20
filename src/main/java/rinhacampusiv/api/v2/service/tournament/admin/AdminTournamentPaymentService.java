@@ -12,6 +12,7 @@ import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventData;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
+import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class AdminTournamentPaymentService {
     @Transactional(readOnly = true)
     public Page<PaymentEventData> listPayments(Long tournamentId, PaymentStatus status, Pageable pageable) {
         if (!tournamentRepository.existsById(tournamentId)) {
-            throw new EntityNotFoundException("Torneio não encontrado");
+            throw new TournamentNotFoundException("Torneio não encontrado");
         }
 
         return paymentRepository.findByTournamentIdAndStatus(tournamentId, status, pageable)

@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
 
 import jakarta.validation.constraints.NotNull;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -11,7 +12,7 @@ public record TournamentRegistrationStatusData(
         boolean registered,
 
         //Payment data
-        PaymentStatus paymentStatus,
+        TeamStatus teamStatus,
         String uuid,
         BigDecimal value,
         String qrCode,
@@ -23,8 +24,8 @@ public record TournamentRegistrationStatusData(
         this(registered, null, null, null, null, null, null);
     }
 
-        public TournamentRegistrationStatusData(boolean registered, PaymentStatus paymentStatus) {
-        this(registered, paymentStatus, null, null, null, null, null);
+    public TournamentRegistrationStatusData(boolean registered, TeamStatus teamStatus) {
+        this(registered, teamStatus, null, null, null, null, null);
     }
 
 }

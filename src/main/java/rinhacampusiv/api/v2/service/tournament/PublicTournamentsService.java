@@ -4,8 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
@@ -16,6 +14,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicDetailData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
+import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 
 import java.util.List;
 
@@ -28,10 +27,12 @@ public class PublicTournamentsService {
     @Autowired
     private TeamRepository teamRepository;
 
+
+    //Implementar a verificação para a seção de torneios FINISHED
     @Transactional(readOnly = true)
     public TournamentPublicDetailData getPublicTournamentView(Long id) {
         Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Torneio não encontrado"));
+                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
 
         if (tournament.getStatus() == TournamentStatus.CANCELED) {
             throw new EntityNotFoundException("Torneio não disponível");

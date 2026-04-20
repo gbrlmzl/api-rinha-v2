@@ -8,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.CancelRegistrationDto;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.CanceledTeamData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
 import rinhacampusiv.api.v2.service.tournament.registration.TournamentRegistrationService;
@@ -24,6 +26,16 @@ public class TournamentRegistrationController {
 
     @Autowired
     private TournamentRegistrationService tournamentRegistrationService;
+
+    @PutMapping(value = "/{tournamentId}/registrations")
+    public ResponseEntity<CanceledTeamData> cancelRegistration(
+            @RequestBody @Valid CancelRegistrationDto cancelRegistration,
+            @PathVariable Long tournamentId,
+            Authentication authentication
+    ) {
+        CanceledTeamData updatedTeam = tournamentRegistrationService.updateTeam(tournamentId,cancelRegistration, authentication);
+        return ResponseEntity.ok(updatedTeam);
+    }
 
 
     // Controller
