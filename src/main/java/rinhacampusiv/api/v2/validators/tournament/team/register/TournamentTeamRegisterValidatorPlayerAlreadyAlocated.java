@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.players.PlayerRepository;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PlayerRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 
@@ -24,8 +25,8 @@ public class TournamentTeamRegisterValidatorPlayerAlreadyAlocated implements Tou
 
         for (PlayerRegisterData playerData : players) {
 
-            if (playerRepository.existsBySchoolIdAndTeamTournamentId(
-                    playerData.schoolId(), tournament.getId())) {
+            if (playerRepository.existsBySchoolIdAndTeamTournamentIdAndTeamStatusNot(
+                    playerData.schoolId(), tournament.getId(),TeamStatus.CANCELED)) {
 
                 throw new ValidatorException(
                         String.format(
@@ -34,8 +35,8 @@ public class TournamentTeamRegisterValidatorPlayerAlreadyAlocated implements Tou
                         )
                 );
 
-            } else if (playerRepository.existsByNicknameAndTeamTournamentId(
-                    playerData.nickname(), tournament.getId())) {
+            } else if (playerRepository.existsByNicknameAndTeamTournamentIdAndTeamStatusNot(
+                    playerData.nickname(), tournament.getId(), TeamStatus.CANCELED)) {
 
                 throw new ValidatorException(
                         String.format(

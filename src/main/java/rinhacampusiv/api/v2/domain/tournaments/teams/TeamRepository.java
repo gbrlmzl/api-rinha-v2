@@ -69,4 +69,5 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     Boolean existsByNameAndTournamentIdAndStatusNotIn(String name, Long tournamentId, List<TeamStatus> status);
 
+    Integer countByTournamentIdAndStatusIn(Long tournamentId, List<TeamStatus> status);
 }

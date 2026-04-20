@@ -18,6 +18,8 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.CanceledTeamData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.CheckRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.*;
@@ -131,36 +133,47 @@ public class TournamentRegistrationService {
 
     }
 
-    public TournamentRegistrationStatusData getRegistrationStatus(Long tournamentId, Authentication authentication) {
-        if (authentication == null) {
-            throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
-        }
+    /*public TournamentRegistrationStatusData getRegistrationStatus(Long tournamentId, Authentication authentication) {
+        if (authentication == null) { throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");}
         User captain = (User) authentication.getPrincipal();
+        Optional<Tournament> tournament = tournamentRepository.findById(tournamentId);
+
+        if (tournament.isEmpty()) { throw new TournamentNotFoundException("Torneio não encontrado");
+        } else if (tournament.get().getStatus() != TournamentStatus.OPEN && tournament.get().getStatus() != TournamentStatus.FULL) {
+            throw new TournamentFullException("As inscrições para esse torneio estão encerradas!");
+        }
 
         if (captain == null) { //Disparar exceção genérica
             throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
         }
 
-        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentId(captain.getId(), tournamentId);
+        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournamentId, TeamStatus.CANCELED);
+        boolean maxTeamsReached = (teamRepository.countByTournamentId(tournament.get().getId()) >= tournament.get().getMaxTeams());
 
         if (team.isPresent()) {
+            if(tournament.get().getStatus() == TournamentStatus.FULL || maxTeamsReached ){
+                CheckRegistrationData registrationData = new CheckRegistrationData(true, team.get().getStatus(),tournament.get().getStatus(),true);
+                return new TournamentRegistrationStatusData(registrationData);
+            }
+
             PaymentEntity payment = team.get().getPayments().getLast();
+            if (tournament.get().getStatus() == TournamentStatus.OPEN && payment.isPending()) {
 
-            PaymentStatus paymentStatus = payment.getStatus();
+                GeneratedPaymentData generatedPaymentData = new GeneratedPaymentData(payment);
+                CheckRegistrationData registrationData = new CheckRegistrationData(true, team.get().getStatus(),tournament.get().getStatus(),false);
 
-            if (payment.isPending()) {
-                String qrCode = payment.getQrCode();
-                String qrCodeBase64 = generateBase64(qrCode);
+                return new TournamentRegistrationStatusData(registrationData, generatedPaymentData);
 
-                return new TournamentRegistrationStatusData(true, team.get().getStatus(), payment.getUuid(), payment.getValue(), qrCode, qrCodeBase64, payment.getExpiresAt());
-            } else {
-                return new TournamentRegistrationStatusData(true, team.get().getStatus());
+            } else /* Inscrição realizada, pagamento expirado|cancelado e torneio com vagas  {
+                CheckRegistrationData registrationData = new CheckRegistrationData(true, team.get().getStatus(),tournament.get().getStatus(),false);
+                return new TournamentRegistrationStatusData(registrationData);
             }
 
         } else {
-            return new TournamentRegistrationStatusData(false);
+            CheckRegistrationData registrationData = new CheckRegistrationData(false, tournament.get().getStatus(), maxTeamsReached);
+            return new TournamentRegistrationStatusData(registrationData);
         }
-    }
+    }*/
 
 
     public CanceledTeamData updateTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication){
@@ -218,6 +231,73 @@ public class TournamentRegistrationService {
             throw new ValidatorException("Já existe uma equipe com esse nome");
         }
     }
+
+    public TournamentRegistrationStatusData getRegistrationStatus(Long tournamentId, Authentication authentication) {
+        validateAuthentication(authentication);
+
+        User captain = (User) authentication.getPrincipal();
+        Tournament tournament = getTournamentOrThrow(tournamentId);
+
+        validateTournamentStatus(tournament);
+
+        Optional<Team> team = findTeam(captain, tournamentId);
+        boolean maxTeamsReached = isMaxTeamsReached(tournament);
+
+        if (team.isPresent()) {
+            return handleExistingTeam(team.get(), tournament, maxTeamsReached);
+        }
+
+        return handleNoTeam(tournament, maxTeamsReached);
+    }
+
+    private void validateAuthentication(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
+        }
+    }
+
+    private Tournament getTournamentOrThrow(Long tournamentId) {
+        return tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
+    }
+
+    private void validateTournamentStatus(Tournament tournament) {
+        if (tournament.getStatus() != TournamentStatus.OPEN && tournament.getStatus() != TournamentStatus.FULL) {
+            throw new TournamentFullException("As inscrições para esse torneio estão encerradas!");
+        }
+    }
+
+    private Optional<Team> findTeam(User captain, Long tournamentId) {
+        return teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(
+                captain.getId(), tournamentId, TeamStatus.CANCELED);
+    }
+
+    private boolean isMaxTeamsReached(Tournament tournament) {
+        return teamRepository.countByTournamentId(tournament.getId()) >= tournament.getMaxTeams();
+    }
+
+    private TournamentRegistrationStatusData handleExistingTeam(Team team, Tournament tournament, boolean maxTeamsReached) {
+        if (tournament.getStatus() == TournamentStatus.FULL || maxTeamsReached) {
+            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), tournament.getStatus(), true);
+            return new TournamentRegistrationStatusData(registrationData);
+        }
+
+        PaymentEntity payment = team.getPayments().getLast();
+        if (tournament.getStatus() == TournamentStatus.OPEN && payment.isPending()) {
+            GeneratedPaymentData generatedPaymentData = new GeneratedPaymentData(payment);
+            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), tournament.getStatus(), false);
+            return new TournamentRegistrationStatusData(registrationData, generatedPaymentData);
+        }
+
+        CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), tournament.getStatus(), false);
+        return new TournamentRegistrationStatusData(registrationData);
+    }
+
+    private TournamentRegistrationStatusData handleNoTeam(Tournament tournament, boolean maxTeamsReached) {
+        CheckRegistrationData registrationData = new CheckRegistrationData(false, tournament.getStatus(), maxTeamsReached);
+        return new TournamentRegistrationStatusData(registrationData);
+    }
+
 
 
 
