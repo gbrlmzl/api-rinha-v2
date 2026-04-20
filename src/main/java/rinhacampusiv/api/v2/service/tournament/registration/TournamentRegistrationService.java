@@ -190,7 +190,7 @@ public class TournamentRegistrationService {
             throw new IllegalStateException("Operação não permitida");
         }
 
-        Optional<Team> optionalTeam = teamRepository.findByCaptainIdAndTournamentId(captain.getId(), tournamentId);
+        Optional<Team> optionalTeam = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournamentId, TeamStatus.CANCELED);
         if(optionalTeam.isEmpty()){
             throw new TeamNotFoundException("Não foi encontrada nenhuma equipe cadastrada para cancelar!");
         }
