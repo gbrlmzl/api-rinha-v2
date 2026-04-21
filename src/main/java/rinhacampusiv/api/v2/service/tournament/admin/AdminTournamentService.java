@@ -63,7 +63,11 @@ public class AdminTournamentService {
     @Transactional
     public TournamentAdminDetailData createTournament(TournamentCreationData tournamentData, MultipartFile image) {
 
-        creationValidators.forEach(creationValidator -> creationValidator.validar(tournamentData));
+        if (image == null || image.isEmpty()) {
+            throw new ValidatorException("A imagem do torneio é obrigatória.");
+        }
+
+        creationValidators.forEach(v -> v.validar(tournamentData));
 
         String imageUrl = imgurClient.uploadTournamentImage(image, tournamentData.name());
         Tournament tournament = new Tournament(tournamentData);
@@ -118,11 +122,25 @@ public class AdminTournamentService {
         Tournament tournament = findTournamentById(id);
 
         updateValidators.forEach(v -> v.validar(tournament, data));
+
         if (image != null && !image.isEmpty()) {
             String imageUrl = imgurClient.uploadTournamentImage(image, data.name() != null ? data.name() : tournament.getName());
             tournament.setImageUrl(imageUrl);
         }
+
         tournament.updateInformation(data);
+
+        if (data.maxTeams() != null && data.status() == null) {
+            Integer activeTeams = teamRepository.countByActiveTrueAndTournamentId(id);
+            TournamentStatus currentStatus = tournament.getStatus();
+
+            if (data.maxTeams().equals(activeTeams) && currentStatus == TournamentStatus.OPEN) {
+                tournament.setStatus(TournamentStatus.FULL);
+            } else if (data.maxTeams() > activeTeams && currentStatus == TournamentStatus.FULL) {
+                tournament.setStatus(TournamentStatus.OPEN);
+            }
+        }
+
         return new TournamentAdminDetailData(tournament);
     }
 

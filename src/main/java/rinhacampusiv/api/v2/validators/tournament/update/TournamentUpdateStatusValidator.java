@@ -15,27 +15,31 @@ public class TournamentUpdateStatusValidator implements TournamentUpdateValidato
     public void validar(Tournament tournament, TournamentUpdateData data) {
         TournamentStatus oldStatus = tournament.getStatus();
         TournamentStatus newStatus = data.status();
-        OffsetDateTime startsAt = data.startsAt() != null ? data.startsAt() : tournament.getStartsAt();
 
         if (newStatus == null || oldStatus == newStatus) return;
 
-        // Regra 1: Se já acabou ou foi cancelado, está "congelado"
-        if (oldStatus == TournamentStatus.FINISHED || oldStatus == TournamentStatus.CANCELED) {
-            throw new ValidatorException("Não é possível alterar o status de um torneio já finalizado ou cancelado.");
+        if (newStatus == TournamentStatus.FULL) {
+            throw new ValidatorException("O status FULL é definido automaticamente pelo sistema.");
         }
 
-        // Regra 2: Não pode abrir se a data já passou
-        if (newStatus == TournamentStatus.OPEN) {
-            if (OffsetDateTime.now().isAfter(startsAt)) {
-                throw new ValidatorException("Não pode reabrir (OPEN) um torneio cuja data de início já passou.");
-            }
+        if (newStatus == TournamentStatus.ONGOING) {
+            throw new ValidatorException("O status ONGOING é definido automaticamente quando o torneio iniciar.");
         }
 
-        // Regra 3: Não pode finalizar antes da data de início
-        if (newStatus == TournamentStatus.FINISHED) {
-            if (OffsetDateTime.now().isBefore(startsAt)) {
-                throw new ValidatorException("Não pode finalizar (FINISHED) um torneio antes do seu início. Utilize a opção Cancelar.");
-            }
+        if (newStatus == TournamentStatus.CANCELED) {
+            throw new ValidatorException("Para cancelar um torneio utilize o endpoint de cancelamento.");
+        }
+
+        if (oldStatus == TournamentStatus.FINISHED) {
+            throw new ValidatorException("Não é possível alterar o status de um torneio já finalizado.");
+        }
+
+        if (newStatus == TournamentStatus.OPEN && oldStatus != TournamentStatus.CANCELED) {
+            throw new ValidatorException("Um torneio só pode ser reaberto (OPEN) se estiver cancelado.");
+        }
+
+        if (newStatus == TournamentStatus.FINISHED && oldStatus != TournamentStatus.ONGOING) {
+            throw new ValidatorException("Um torneio só pode ser finalizado (FINISHED) se estiver em andamento (ONGOING).");
         }
     }
 }

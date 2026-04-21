@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.MyTournamentsSummaryData;
-import rinhacampusiv.api.v2.service.tournament.registration.MyTournamentsService;
+import rinhacampusiv.api.v2.service.tournament.MyTournamentsService;
 
 @RestController
 @RequestMapping("/tournaments/me")

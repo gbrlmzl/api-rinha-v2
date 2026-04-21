@@ -1,6 +1,7 @@
 package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin;
 
 import jakarta.validation.constraints.*;
+import org.hibernate.validator.constraints.URL;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.validators.constraints.FutureByAtLeastHours;
 
@@ -9,6 +10,7 @@ import java.time.OffsetDateTime;
 
 public record TournamentCreationData(
         @NotBlank(message = "O nome do torneio é obrigatório")
+        @Size(min=10, max=50)
         String name,
 
         @NotNull(message = "O tipo de jogo é obrigatório")
@@ -30,6 +32,7 @@ public record TournamentCreationData(
         String description,
 
         @NotBlank(message = "É obrigatório que o torneio tenha regras")
+        @URL
         String rulesUrl
 ) {
 }
