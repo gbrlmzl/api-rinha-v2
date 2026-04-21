@@ -2,7 +2,7 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
 
 
 
-import jakarta.annotation.Nullable;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamPublicData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.UserTeamStatusData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;

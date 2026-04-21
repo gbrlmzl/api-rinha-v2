@@ -6,7 +6,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.CancelRegistrationDto;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
@@ -19,7 +18,7 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.CheckRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.response.CheckRegistrationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.*;
@@ -33,8 +32,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static rinhacampusiv.api.v2.utils.QrCodeUtil.generateBase64;
 
 @Service
 public class TournamentRegistrationService {

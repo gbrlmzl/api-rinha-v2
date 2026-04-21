@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
+package rinhacampusiv.api.v2.domain.tournaments.registrations.response;
 
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;

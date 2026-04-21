@@ -1,5 +1,6 @@
-package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos;
+package rinhacampusiv.api.v2.domain.tournaments.teams.dtos;
 
+import rinhacampusiv.api.v2.domain.tournaments.players.PlayerPublicData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 
 import java.util.List;
