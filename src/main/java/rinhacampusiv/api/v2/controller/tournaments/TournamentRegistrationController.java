@@ -77,8 +77,10 @@ public class TournamentRegistrationController {
             @PathVariable Long tournamentId,
             @RequestParam String name) {
 
-        tournamentRegistrationService.checkExistentTeamNameInTournament(tournamentId, name.trim());
-        return ResponseEntity.noContent().build();
+        boolean existTeam = tournamentRegistrationService.checkExistentTeamNameInTournament(tournamentId, name.trim());
+
+        if(!existTeam){return ResponseEntity.noContent().build();}
+        return ResponseEntity.ok().build();
     }
 
 

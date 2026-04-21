@@ -55,6 +55,8 @@ public class SecurityConfigurations {
                         // Autorizar rotas de validação de conta
                         .requestMatchers(HttpMethod.GET,  "/auth/activate/validate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/activate", "/auth/activate/resend").permitAll()
+                        // Autorizar Swagger
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**" ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
