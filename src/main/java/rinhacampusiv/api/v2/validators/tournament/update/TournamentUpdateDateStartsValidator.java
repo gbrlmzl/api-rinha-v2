@@ -20,8 +20,8 @@ public class TournamentUpdateDateStartsValidator implements TournamentUpdateVali
             if (newDateStartsBeforeCreationData)
                 throw new ValidatorException("Não é possível alterar a hora do torneio para " + HOUR_VALIDATOR + " hora(s) depois do horário de criação(" + tournament.getStartsAt().toLocalTime() + ")" );
 
-            boolean newDateIsEqualCreationData = tournamentData.startsAt() != tournament.getStartsAt();
-            if (newDateIsEqualCreationData)
+            boolean newDateIsEqualToCurrentDate = tournamentData.startsAt().isEqual(tournament.getStartsAt());
+            if (newDateIsEqualToCurrentDate)
                 throw new ValidatorException("O torneio não pode começar começar na mesma hora que já existia: " + tournament.getStartsAt().toLocalTime());
         }
     }

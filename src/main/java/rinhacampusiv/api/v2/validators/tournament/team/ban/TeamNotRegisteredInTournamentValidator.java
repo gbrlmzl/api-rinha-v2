@@ -20,7 +20,7 @@ public class TeamNotRegisteredInTournamentValidator implements TournamentTeamBan
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("Equipe não encontrada"));
 
-        boolean teamNotRegisteredInTournament = team.getTournament().getId().equals(tournament.getId());
+        boolean teamNotRegisteredInTournament = !team.getTournament().getId().equals(tournament.getId());
         if (teamNotRegisteredInTournament) {
             throw new ValidatorException("Equipe não pertence a este torneio");
         }

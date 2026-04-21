@@ -25,7 +25,7 @@ public class AdminTournamentTeamController {
         return ResponseEntity.ok(adminService.listTeams(tournamentId, pageable));
     }
 
-    @DeleteMapping("/{teamId}")
+    @PatchMapping("/{teamId}")
     public ResponseEntity<Void> banTeam(
             @PathVariable Long tournamentId,
             @PathVariable Long teamId) {

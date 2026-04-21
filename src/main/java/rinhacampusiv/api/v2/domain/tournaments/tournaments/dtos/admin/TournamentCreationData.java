@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin;
 
 import jakarta.validation.constraints.*;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
+import rinhacampusiv.api.v2.validators.constraints.FutureByAtLeastHours;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -22,14 +23,11 @@ public record TournamentCreationData(
         BigDecimal prizePool,
 
         @NotNull(message = "A data de início é obrigatória")
-        @Future(message = "A data de início deve ser no futuro")
+        @FutureByAtLeastHours(value = 1, message = "O torneio deve começar em pelo menos 1 hora")
         OffsetDateTime startsAt,
 
         @NotBlank(message = "A descrição é obrigatória")
         String description,
-
-        @NotBlank(message = "A URL da imagem é obrigatória")
-        String imageUrl,
 
         @NotBlank(message = "É obrigatório que o torneio tenha regras")
         String rulesUrl

@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.CancelRegistrationDto;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
@@ -25,6 +26,7 @@ import rinhacampusiv.api.v2.infra.exception.*;
 import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
 import rinhacampusiv.api.v2.service.tournament.payment.PaymentAPIManagerService;
 import rinhacampusiv.api.v2.infra.external.ImgurClient;
+import rinhacampusiv.api.v2.service.tournament.payment.PaymentEventService;
 import rinhacampusiv.api.v2.validators.tournament.team.register.TournamentTeamRegisterValidator;
 import rinhacampusiv.api.v2.validators.tournament.team.register.retry.TournamentRetryRegisterValidator;
 
@@ -56,6 +58,9 @@ public class TournamentRegistrationService {
 
     @Autowired
     private MercadoPagoClient mercadoPagoClient;
+
+    @Autowired
+    private PaymentEventService paymentEventService;
 
     //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
 
@@ -112,6 +117,7 @@ public class TournamentRegistrationService {
         teamToRegister.paymentGenerated(newPayment);
 
         teamRepository.save(teamToRegister);
+        paymentEventService.save(newPayment, PaymentEventType.PAYMENT_GENERATED);
         return new GeneratedPaymentData(newPayment);
     }
 
@@ -165,6 +171,7 @@ public class TournamentRegistrationService {
         }
 
         teamToCancel.cancelByUser();
+        paymentEventService.save(paymentToCancel, PaymentEventType.CANCELED_BY_USER);
         teamRepository.save(teamToCancel);
 
         return new CanceledTeamData(teamToCancel);

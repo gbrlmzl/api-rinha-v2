@@ -66,7 +66,6 @@ public class Tournament {
         this.startsAt = tournamentDto.startsAt();
         this.createdAt = OffsetDateTime.now();
         this.description = tournamentDto.description();
-        this.imageUrl = tournamentDto.imageUrl();
         this.rulesUrl = tournamentDto.rulesUrl();
     }
 

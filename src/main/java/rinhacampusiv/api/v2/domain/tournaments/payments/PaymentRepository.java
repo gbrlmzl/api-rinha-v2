@@ -19,6 +19,12 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
     Long countByStatus(PaymentStatus status);
 
+    @Query("SELECT p FROM PaymentEntity p WHERE p.team.id = :teamId AND p.team.tournament.id = :tournamentId")
+    Page<PaymentEntity> findByTeamIdAndTournamentId(
+            @Param("teamId") Long teamId,
+            @Param("tournamentId") Long tournamentId,
+            Pageable pageable);
+
     String id(Long id);
 
     @Query("SELECT p FROM PaymentEntity p JOIN p.team t WHERE t.tournament.id = :tournamentId AND (:status IS NULL OR p.status = :status)")

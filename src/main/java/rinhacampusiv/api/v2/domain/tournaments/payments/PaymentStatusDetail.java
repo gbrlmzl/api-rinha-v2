@@ -4,7 +4,8 @@ public enum PaymentStatusDetail {
     WAITING_TRANSFER,
     ACCREDITED,
     EXPIRED,
-    CANCELED_BY_USER;
+    CANCELED_BY_USER,
+    CANCELED_BY_ADMIN;
 
 
     public static PaymentStatusDetail fromMercadoPago(String mpStatusDetail){

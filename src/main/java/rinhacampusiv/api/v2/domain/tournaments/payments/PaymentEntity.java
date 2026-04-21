@@ -111,6 +111,11 @@ public class PaymentEntity {
         this.statusDetail = PaymentStatusDetail.CANCELED_BY_USER;
     }
 
+    public void cancelByAdmin() {
+        this.status = PaymentStatus.CANCELED;
+        this.statusDetail = PaymentStatusDetail.CANCELED_BY_ADMIN;
+    }
+
     public boolean isPending() {
         return this.status == PaymentStatus.PENDING;
     }

@@ -14,4 +14,5 @@ public interface TournamentRepository extends JpaRepository<Tournament, Long> {
 
     Page<Tournament> findByGameAndStatusIn(TournamentGame game, List<TournamentStatus> listStatus, Pageable pageable);
 
+    boolean existsByNameAndGameAndIdNot(String name, TournamentGame game, Long id);
 }

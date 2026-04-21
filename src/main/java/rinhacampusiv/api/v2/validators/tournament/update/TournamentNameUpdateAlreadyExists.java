@@ -16,7 +16,7 @@ public class TournamentNameUpdateAlreadyExists implements TournamentUpdateValida
     @Override
     public void validar(Tournament tournament, TournamentUpdateData tournamentData) {
         if (tournamentData.name() != null) {
-            boolean tournamentNameAlreadyExists = tournamentRepository.existsByNameAndGame(tournamentData.name(), tournamentData.game()) || tournament.getName().equals(tournamentData.name());
+            boolean tournamentNameAlreadyExists = tournamentRepository.existsByNameAndGameAndIdNot(tournamentData.name(), tournamentData.game(), tournament.getId());
             if (tournamentNameAlreadyExists) {
                 throw new ValidatorException("Já existe um torneio com esse nome");
             }

@@ -78,4 +78,37 @@ public class ImgurClient {
         }
     }
 
+    public String uploadTournamentImage(MultipartFile file, String tournamentName) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(accessToken);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("image", file.getResource());
+            body.add("type", "file");
+            body.add("title", tournamentName != null ? tournamentName : "tournament_image");
+            body.add("album", "ENwHp34");
+
+            HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(IMGUR_UPLOAD_URL, request, String.class);
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+
+            boolean success = root.path("success").asBoolean(false);
+            if (!success) {
+                String errorMsg = root.path("data").path("error").asText("Erro desconhecido");
+                throw new ImgurUploadException("Imgur recusou o upload da imagem do torneio: " + errorMsg);
+            }
+
+            return root.path("data").path("link").asText();
+
+        } catch (ImgurUploadException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ImgurUploadException("Erro ao fazer upload da imagem do torneio: " + e.getMessage());
+        }
+    }
+
 }

@@ -99,8 +99,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ImgurUploadException.class)
-    public void tratarErroUploadImgur(Exception ex){
-        //Não deve parar o fluxo de cadastro, apenas avisar que houve um erro no upload do escudo.
+    public ResponseEntity<?> tratarErroUploadImgur(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(AccountNotActivatedException.class)

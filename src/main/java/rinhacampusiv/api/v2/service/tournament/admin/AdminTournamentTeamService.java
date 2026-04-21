@@ -47,10 +47,6 @@ public class AdminTournamentTeamService {
     public void banTeam(Long tournamentId, Long teamId) {
         Tournament tournament = findTournamentById(tournamentId);
 
-        if (tournament.getStatus() == TournamentStatus.FINISHED) {
-            throw new ValidatorException("Não é possível banir equipes de um torneio encerrado.");
-        }
-
         tournamentTeamBanValidators.forEach(validator -> validator.validar(tournament, teamId));
 
         Team team = teamRepository.findById(teamId)

@@ -7,8 +7,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminDetailData;
@@ -24,11 +26,13 @@ public class AdminTournamentController {
     @Autowired
     private AdminTournamentService adminService;
 
-    @PostMapping
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TournamentAdminDetailData> create(
-            @RequestBody TournamentCreationData tournamentData,
+            @RequestPart("data") @Valid TournamentCreationData tournamentData,
+            @RequestPart("image") MultipartFile image,
             UriComponentsBuilder uriBuilder) {
-        TournamentAdminDetailData response = adminService.createTournament(tournamentData);
+        TournamentAdminDetailData response = adminService.createTournament(tournamentData, image);
         var uri = uriBuilder.path("/admin/tournaments/{tournamentId}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(uri).body(response);
     }
@@ -48,15 +52,17 @@ public class AdminTournamentController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{tournamentId}")
+    @PutMapping(value = "/{tournamentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TournamentAdminDetailData> updateTournament(
             @PathVariable Long tournamentId,
-            @RequestBody @Valid TournamentUpdateData data) {
+            @RequestPart("data") @Valid TournamentUpdateData data,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        TournamentAdminDetailData response = adminService.updateTournament(tournamentId, data);
+        TournamentAdminDetailData response = adminService.updateTournament(tournamentId, data, image);
         return ResponseEntity.ok(response);
     }
 
+    //
     @PatchMapping("/{tournamentId}")
     public ResponseEntity<Void> deleteTournament(
             @PathVariable Long tournamentId,
@@ -65,5 +71,7 @@ public class AdminTournamentController {
         adminService.cancelTournament(tournamentId, force);
         return ResponseEntity.noContent().build();
     }
+
+
 
 }

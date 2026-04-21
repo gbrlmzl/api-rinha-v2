@@ -20,9 +20,9 @@ public record PaymentEventData(
         OffsetDateTime expiresAt,
         OffsetDateTime paidAt,
         String payer,
-        boolean hasEvents
+        PaymentEventType lastEventType
 ) {
-    public PaymentEventData(PaymentEntity p, boolean hasEvents) {
+    public PaymentEventData(PaymentEntity p, PaymentEventType lastEventType) {
         this(
                 p.getId(),
                 p.getMercadoPagoId(),
@@ -36,7 +36,7 @@ public record PaymentEventData(
                 p.getExpiresAt(),
                 p.getPaidAt(),
                 p.getPayer(),
-                hasEvents
+                lastEventType
         );
     }
 }

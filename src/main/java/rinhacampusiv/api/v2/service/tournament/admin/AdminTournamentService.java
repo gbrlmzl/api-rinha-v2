@@ -8,6 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
+import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
@@ -20,10 +24,15 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
 import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
+import rinhacampusiv.api.v2.infra.external.ImgurClient;
+import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
+import rinhacampusiv.api.v2.service.tournament.payment.PaymentEventService;
 import rinhacampusiv.api.v2.validators.tournament.creation.TournamentCreationValidator;
 import rinhacampusiv.api.v2.validators.tournament.update.TournamentUpdateValidator;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminTournamentService {
@@ -42,12 +51,24 @@ public class AdminTournamentService {
     @Autowired
     private List<TournamentUpdateValidator> updateValidators;
 
+    @Autowired
+    private MercadoPagoClient mercadoPagoClient;
+
+    @Autowired
+    private ImgurClient imgurClient;
+
+    @Autowired
+    private PaymentEventService paymentEventService;
+
     @Transactional
-    public TournamentAdminDetailData createTournament(TournamentCreationData tournamentData) {
+    public TournamentAdminDetailData createTournament(TournamentCreationData tournamentData, MultipartFile image) {
 
         creationValidators.forEach(creationValidator -> creationValidator.validar(tournamentData));
 
+        String imageUrl = imgurClient.uploadTournamentImage(image, tournamentData.name());
         Tournament tournament = new Tournament(tournamentData);
+        tournament.setImageUrl(imageUrl);
+
         tournamentRepository.save(tournament);
 
         return new TournamentAdminDetailData(tournament);
@@ -64,10 +85,22 @@ public class AdminTournamentService {
             tournamentsPage = tournamentRepository.findAll(pageable);
         }
 
-        return tournamentsPage.map(tournament -> {
-            Integer confirmedTeams = teamRepository.countByTournamentIdAndStatus(tournament.getId(), TeamStatus.READY);
-            return new TournamentAdminSummaryData(tournament, confirmedTeams);
-        });
+        List<Long> tournamentIds = tournamentsPage.getContent().stream()
+                .map(Tournament::getId)
+                .toList();
+
+        Map<Long, Integer> confirmedTeamsMap = teamRepository
+                .countByTournamentIdsAndStatus(tournamentIds, TeamStatus.READY)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        return tournamentsPage.map(tournament ->
+                new TournamentAdminSummaryData(tournament,
+                        confirmedTeamsMap.getOrDefault(tournament.getId(), 0))
+        );
     }
 
     @Transactional(readOnly = true)
@@ -80,11 +113,15 @@ public class AdminTournamentService {
 
 
     @Transactional
-    public TournamentAdminDetailData updateTournament(Long id, TournamentUpdateData data) {
+    public TournamentAdminDetailData updateTournament(Long id, TournamentUpdateData data, MultipartFile image) {
 
         Tournament tournament = findTournamentById(id);
 
         updateValidators.forEach(v -> v.validar(tournament, data));
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = imgurClient.uploadTournamentImage(image, data.name() != null ? data.name() : tournament.getName());
+            tournament.setImageUrl(imageUrl);
+        }
         tournament.updateInformation(data);
         return new TournamentAdminDetailData(tournament);
     }
@@ -92,22 +129,54 @@ public class AdminTournamentService {
     @Transactional
     public void cancelTournament(Long id, boolean force) {
         Tournament tournament = findTournamentById(id);
-
         Integer totalTeams = teamRepository.countByTournamentId(id);
 
-        // Se tem equipes e a confirmação NÃO foi enviada, bloqueia e avisa
         if (totalTeams > 0 && !force) {
             throw new ValidatorException("O torneio possui " + totalTeams + " equipe(s) vinculada(s). Deseja realmente cancelar o torneio?");
         }
 
-        // Se tem equipes e a confirmação FOI enviada, apaga as dependências primeiro
-        if (totalTeams > 0 && force) {
-            tournament.setStatus(TournamentStatus.CANCELED);
+        if (totalTeams == 0) {
+            log.warn("Torneio deletado — ID: {}, Nome: {}, Jogo: {}",
+                    tournament.getId(), tournament.getName(), tournament.getGame());
+            tournamentRepository.delete(tournament);
+            return;
         }
 
-        log.warn("Excluído Torneio — ID: {}, Nome: {}, Jogo: {}",
-                tournament.getId(), tournament.getName(), tournament.getGame());
-        tournamentRepository.delete(tournament);
+        // force == true com equipes — cancela com cascade
+        List<Team> teams = teamRepository.findAllByTournamentIdWithDetails(id);
+        cancelPayments(teams); //Cancela o pagamento das equipes que existem.
+
+        tournament.setStatus(TournamentStatus.CANCELED);
+
+        log.warn("Torneio cancelado — ID: {}, Nome: {}, Jogo: {}, Equipes afetadas: {}",
+                tournament.getId(), tournament.getName(), tournament.getGame(), totalTeams);
+    }
+
+    private void cancelPayments(List<Team> teams) {
+        for (Team team : teams) {
+            for (PaymentEntity payment : team.getPayments()) {
+                if (payment.isCanceled()) continue;
+
+                if (payment.isPending()) {
+                    boolean canceled = mercadoPagoClient.cancelPayment(payment.getMercadoPagoId());
+                    if (!canceled) {
+                        log.warn("Falha ao cancelar pagamento no MP — paymentId: {}, mpId: {}",
+                                payment.getId(), payment.getMercadoPagoId());
+                    }
+                }
+
+                if (payment.isApproved()) {
+                    log.warn("Pagamento APROVADO cancelado por admin — paymentId: {}, valor: {}, payer: {}",
+                            payment.getId(), payment.getValue(), payment.getPayer());
+                }
+
+                payment.cancelByAdmin();
+                paymentEventService.save(payment, PaymentEventType.CANCELED_BY_ADMIN);
+            }
+
+            team.cancelPayment();
+            team.setActive(false);
+        }
     }
 
     //AUXILIARES
