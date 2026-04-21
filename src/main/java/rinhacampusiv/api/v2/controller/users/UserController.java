@@ -32,7 +32,6 @@ public class UserController {
     @PatchMapping("/me")  // /users/me → atualiza o próprio usuário autenticado
     @Transactional
     public ResponseEntity<?> update(@RequestBody @Valid UserDataUpdateDTO data, Authentication authentication) {
-
         // Pega o usuário autenticado direto do SecurityContext — sem precisar de ID na URL
 
         User user = (User) authentication.getPrincipal();
