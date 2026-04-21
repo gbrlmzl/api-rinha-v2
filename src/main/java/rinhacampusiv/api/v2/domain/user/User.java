@@ -79,10 +79,14 @@ public class User implements UserDetails {
         if (data.newPassword() != null) {
             this.password = encoder.encode(data.newPassword());
         }
+    }
 
-        if (data.profilePic() != null){
-            this.profilePic = data.profilePic();
-        }
+    public void updateNickname(UserDataUpdateDTO data){
+        this.nickname = data.nickname();
+    }
+
+    public void updateProfilePic(String profilePicUrl){
+        this.profilePic = profilePicUrl;
     }
 
     public void resetPassword(String encodedPassword) {

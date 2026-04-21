@@ -13,6 +13,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.infra.exception.ImgurUploadException;
+import rinhacampusiv.api.v2.infra.exception.ProfilePicUploadException;
+import rinhacampusiv.api.v2.infra.exception.user.InvalidProfilePicException;
+
+import java.util.List;
 
 @Service
 public class ImgurClient {
@@ -88,7 +92,7 @@ public class ImgurClient {
             body.add("image", file.getResource());
             body.add("type", "file");
             body.add("title", tournamentName != null ? tournamentName : "tournament_image");
-            body.add("album", "ENwHp34");
+            body.add("album", "sOOAAOb");
 
             HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
@@ -110,5 +114,54 @@ public class ImgurClient {
             throw new ImgurUploadException("Erro ao fazer upload da imagem do torneio: " + e.getMessage());
         }
     }
+
+    public String uploadProfilePicImage(MultipartFile file, String userId) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(accessToken);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("image", file.getResource());
+            body.add("type", "file");
+            body.add("title", userId);
+            body.add("album", "s8LvvIS");
+
+            HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(IMGUR_UPLOAD_URL, request, String.class);
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+
+            return root.path("data").path("link").asText();
+
+        } catch (Exception e) {
+            throw new ProfilePicUploadException("Erro ao fazer upload da foto do perfil, por favor tente novamente mais tarde.");
+        }
+    }
+
+    public void validateImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new InvalidProfilePicException("Arquivo de imagem vazio");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new InvalidProfilePicException("Arquivo não é uma imagem válida");
+        }
+
+        // Formatos aceitos pelo Imgur (mais comuns)
+        List<String> allowedFormats = List.of("image/jpeg", "image/png", "image/gif");
+        if (!allowedFormats.contains(contentType.toLowerCase())) {
+            throw new InvalidProfilePicException("Formato de imagem não suportado. Use JPEG, PNG ou GIF.");
+        }
+
+        // Limite de tamanho (exemplo: 5 MB)
+        long maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+        if (file.getSize() > maxSizeBytes) {
+            throw new InvalidProfilePicException("Arquivo de imagem muito grande. Máximo permitido: 5MB");
+        }
+    }
+
 
 }
