@@ -8,7 +8,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
-import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventData;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventResponseData;
 import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentPaymentService;

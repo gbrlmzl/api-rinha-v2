@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface TeamRepository extends JpaRepository<Team, Long> {

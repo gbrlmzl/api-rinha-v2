@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.utils;
+package rinhacampusiv.api.v2.utils.converters;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;

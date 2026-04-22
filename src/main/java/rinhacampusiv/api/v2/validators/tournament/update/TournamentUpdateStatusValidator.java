@@ -6,8 +6,6 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 
-import java.time.OffsetDateTime;
-
 @Component
 public class TournamentUpdateStatusValidator implements TournamentUpdateValidator {
 

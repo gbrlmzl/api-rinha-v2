@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
-import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
 
 import java.time.OffsetDateTime;
 import java.util.List;

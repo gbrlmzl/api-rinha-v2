@@ -8,7 +8,6 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

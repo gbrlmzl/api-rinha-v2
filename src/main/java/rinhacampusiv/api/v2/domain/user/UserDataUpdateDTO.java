@@ -2,7 +2,6 @@ package rinhacampusiv.api.v2.domain.user;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.springframework.web.multipart.MultipartFile;
 
 // domain/user/UserDataUpdateDTO.java
 public record UserDataUpdateDTO(

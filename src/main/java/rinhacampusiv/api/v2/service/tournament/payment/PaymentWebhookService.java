@@ -3,13 +3,12 @@ package rinhacampusiv.api.v2.service.tournament.payment;
 import com.mercadopago.resources.payment.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
-import rinhacampusiv.api.v2.infra.external.mercadopago.WebHookNotificationData;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
-import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventRepository;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
+import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
+import rinhacampusiv.api.v2.infra.external.mercadopago.WebHookNotificationData;
 
 @Service
 public class PaymentWebhookService {

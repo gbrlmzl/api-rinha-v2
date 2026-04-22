@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.utils;
+package rinhacampusiv.api.v2.utils.converters;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
@@ -14,9 +14,9 @@ public class StringToTournamentGameConverter implements Converter<String, Tourna
         } catch (IllegalArgumentException e) {
             String upper = source.toUpperCase();
             return switch (upper) {
-                case "LOL" -> TournamentGame.LEAGUE_OF_LEGENDS;
-                case "CS" -> TournamentGame.COUNTER_STRIKE;
-                case "VAL" -> TournamentGame.VALORANT;
+                case "LOL","LEAGUE_OF_LEGENDS" -> TournamentGame.LEAGUE_OF_LEGENDS;
+                case "CS", "CS2", "COUNTER-STRIKE" -> TournamentGame.COUNTER_STRIKE;
+                case "VAL", "VALORANT" -> TournamentGame.VALORANT;
                 default -> throw new ValidatorException("Jogo inválido: " + source);
             };
 

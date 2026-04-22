@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,7 +19,6 @@ import rinhacampusiv.api.v2.infra.external.ImgurClient;
 import rinhacampusiv.api.v2.infra.security.TokenService;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
 
 @Service

@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.validators.constraints;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+
 import java.lang.annotation.*;
 
 @Documented
