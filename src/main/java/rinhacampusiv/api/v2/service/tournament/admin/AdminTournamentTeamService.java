@@ -34,11 +34,11 @@ public class AdminTournamentTeamService {
     List<TournamentTeamBanValidator> tournamentTeamBanValidators;
 
     @Transactional(readOnly = true)
-    public Page<TeamAdminSummaryData> listTeams(Long tournamentId, Pageable pageable) {
+    public Page<TeamAdminSummaryData> listTeams(Long tournamentId, List<TeamStatus> statusList, Pageable pageable) {
 
         findTournamentById(tournamentId);
 
-        return teamRepository.findByTournamentId(tournamentId, pageable)
+        return teamRepository.findByTournamentIdAndStatusIn(tournamentId, statusList, pageable)
                 .map(TeamAdminSummaryData::new);
         }
 

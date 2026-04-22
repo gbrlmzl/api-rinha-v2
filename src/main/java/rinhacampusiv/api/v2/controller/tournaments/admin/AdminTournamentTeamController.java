@@ -6,10 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
 import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentTeamService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/tournaments/{tournamentId}/teams")
@@ -21,8 +23,9 @@ public class AdminTournamentTeamController {
     @GetMapping
     public ResponseEntity<Page<TeamAdminSummaryData>> listTeams(
             @PathVariable Long tournamentId,
+            @RequestParam(defaultValue = "PENDING_PAYMENT, READY, FINISHED") List<TeamStatus> statusList,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(adminService.listTeams(tournamentId, pageable));
+        return ResponseEntity.ok(adminService.listTeams(tournamentId, statusList,pageable));
     }
 
     @PatchMapping("/{teamId}")
