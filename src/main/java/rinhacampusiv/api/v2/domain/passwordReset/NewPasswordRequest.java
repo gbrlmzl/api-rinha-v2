@@ -6,9 +6,6 @@ import jakarta.validation.constraints.Size;
 
 // ─── Request: definir nova senha ───────────────────────────────────────────
 public record NewPasswordRequest(
-        @NotBlank(message = "Token obrigatório")
-        String token,
-
         @NotBlank(message = "Senha obrigatória")
         @Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres")
         @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).{8,}$",

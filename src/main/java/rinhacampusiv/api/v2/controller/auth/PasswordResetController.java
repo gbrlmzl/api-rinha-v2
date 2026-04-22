@@ -11,49 +11,37 @@ import rinhacampusiv.api.v2.service.user.PasswordResetService;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/password-reset")
 public class PasswordResetController {
 
     @Autowired
     private PasswordResetService passwordResetService;
 
-
-    // Recebe o username e envia o email
-    @PostMapping("/password-reset/request")
-    public ResponseEntity<?> requestReset(
-            @RequestBody @Valid PasswordResetRequest request) {
-
+    // Solicita reset — envia email
+    @PostMapping
+    public ResponseEntity<?> requestReset(@RequestBody @Valid PasswordResetRequest request) {
         passwordResetService.requestPasswordReset(request.username());
-
-        // Sempre retorna 200 — não revela se o username existe ou não
         return ResponseEntity.ok(Map.of(
                 "message", "Se o username existir, um email será enviado em breve"
         ));
     }
 
-    // GET /auth/password-reset/validate?token=xxx
-    // Frontend chama ao carregar a página /nova-senha para verificar se o token é válido
-    @GetMapping("/password-reset/validate")
-    public ResponseEntity<?> validateToken(@RequestParam String token) {
+    // Valida o token — frontend chama ao carregar /nova-senha
+    @GetMapping("/{token}")
+    public ResponseEntity<?> validateToken(@PathVariable String token) {
         boolean valid = passwordResetService.validateToken(token);
-
         if (!valid) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Token inválido ou expirado"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Token inválido ou expirado"));
         }
-
         return ResponseEntity.ok(Map.of("valid", true));
     }
 
-    // POST /auth/password-reset/confirm
-    // Recebe o token e a nova senha
-    @PostMapping("/password-reset/confirm")
+    // Aplica a nova senha
+    @PatchMapping("/{token}")
     public ResponseEntity<?> confirmReset(
+            @PathVariable String token,
             @RequestBody @Valid NewPasswordRequest request) {
-
-        passwordResetService.resetPassword(request.token(), request.newPassword());
-
+        passwordResetService.resetPassword(token, request.newPassword());
         return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
-
     }
 }

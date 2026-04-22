@@ -50,8 +50,9 @@ public class SecurityConfigurations {
                         // Autorizar /ws/** para os cliente que vai se inscrever no websocket
                         .requestMatchers("/ws/**").permitAll()
                         // Autorizar rotas de recuperação de senha
-                        .requestMatchers(HttpMethod.POST, "/auth/password-reset/request", "/auth/password-reset/confirm").permitAll()
-                        .requestMatchers(HttpMethod.GET,  "/auth/password-reset/validate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/password-reset").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/auth/password-reset/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/auth/password-reset/**").permitAll()
                         // Autorizar rotas de validação de conta
                         .requestMatchers(HttpMethod.GET,  "/auth/activate/validate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/activate", "/auth/activate/resend").permitAll()
