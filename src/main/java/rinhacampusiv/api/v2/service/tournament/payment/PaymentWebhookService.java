@@ -30,7 +30,7 @@ public class PaymentWebhookService {
 
     public void processPayment(WebHookNotificationData body) {
         if (body == null || body.data() == null) {
-            paymentEventService.save(null, null, PaymentEventType.IGNORED, null, null,"body ausente ou sem data");
+            paymentEventService.save(null, null, PaymentEventType.IGNORED, null, null,"Corpo da requisição ausente ou sem dados");
             return;
         }
 

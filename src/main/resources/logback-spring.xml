@@ -1,0 +1,48 @@
+<configuration>
+    <!-- Console Appender: mostra tudo no console -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender para ImgurClient -->
+    <appender name="IMGUR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/logs/rinhaufpb/imgur/imgurclient.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Gera um novo arquivo por dia e comprime os antigos -->
+            <fileNamePattern>/var/logs/meuapp/imgur/imgurclient.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- Mantém 30 dias -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender para MercadoPagoClient -->
+    <appender name="MERCADOPAGO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/logs/rinhaufpb/mercadopago/mercadopagoclient.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/logs/meuapp/mercadopago/mercadopagoclient.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger: manda tudo para o console -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Logger específico para ImgurClient -->
+    <logger name="rinhacampusiv.api.v2.infra.external.ImgurClient" level="INFO" additivity="false">
+        <appender-ref ref="IMGUR_FILE"/>
+    </logger>
+
+    <!-- Logger específico para MercadoPagoClient -->
+    <logger name="rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient" level="INFO" additivity="false">
+        <appender-ref ref="MERCADOPAGO_FILE"/>
+    </logger>
+</configuration>

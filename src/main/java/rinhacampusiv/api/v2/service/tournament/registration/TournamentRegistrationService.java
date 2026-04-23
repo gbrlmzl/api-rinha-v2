@@ -28,7 +28,6 @@ import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
 import rinhacampusiv.api.v2.infra.external.ImgurClient;
 import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
-import rinhacampusiv.api.v2.service.tournament.payment.PaymentAPIManagerService;
 import rinhacampusiv.api.v2.service.tournament.payment.PaymentEventService;
 import rinhacampusiv.api.v2.validators.tournament.team.register.TournamentTeamRegisterValidator;
 import rinhacampusiv.api.v2.validators.tournament.team.register.retry.TournamentRetryRegisterValidator;
@@ -40,9 +39,6 @@ import java.util.Optional;
 
 @Service
 public class TournamentRegistrationService {
-
-    @Autowired
-    private PaymentAPIManagerService paymentAPIManagerService;
 
     @Autowired
     private ImgurClient imgurClient;
@@ -132,7 +128,7 @@ public class TournamentRegistrationService {
         BigDecimal value = calculateRegistatrionPrice(team.getPlayers().size());
 
 
-        Payment generatedPayment = paymentAPIManagerService.emitPayment(paymentData, value);
+        Payment generatedPayment = mercadoPagoClient.emitPayment(paymentData, value);
 
         return new PaymentEntity(generatedPayment, payerName);
 
@@ -163,7 +159,7 @@ public class TournamentRegistrationService {
         if(!paymentToCancel.isCanceled()){
             //Se o pagamento ainda não estiver com o status de cancelado, quer dizer que o pagamento do mercadoPago ainda está funcionando.
             //Nesse cenário, deve-se cancelar o pagamento do mercadoPago manualmente.
-            boolean response = mercadoPagoClient.cancelPayment(paymentToCancel.getMercadoPagoId());
+            boolean response = mercadoPagoClient.cancelPayment(paymentToCancel.getMercadoPagoId(), paymentToCancel.getId());
 
             if(!response){
                 //Log de Falha ao atualizar

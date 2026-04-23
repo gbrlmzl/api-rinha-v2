@@ -2,6 +2,8 @@ package rinhacampusiv.api.v2.infra.external;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +30,7 @@ public class ImgurClient {
     private String accessToken;
 
 
+    private final Logger logger = LoggerFactory.getLogger(ImgurClient.class);
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper  = new ObjectMapper();
 
@@ -41,13 +44,12 @@ public class ImgurClient {
      */
     public String uploadShield(MultipartFile file, String teamName) {
         try {
-            // Monta o multipart para a API do Imgur
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            headers.setBearerAuth(accessToken); // "Bearer {token}"
+            headers.setBearerAuth(accessToken);
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("image", file.getResource()); // Spring converte MultipartFile → Resource
+            body.add("image", file.getResource());
             body.add("type", "file");
             body.add("title", teamName != null ? teamName : "team_shield");
             body.add("album", "ENwHp34");
@@ -60,24 +62,24 @@ public class ImgurClient {
                     String.class
             );
 
-            // Parseia a resposta do Imgur
             JsonNode root = objectMapper.readTree(response.getBody());
 
             boolean success = root.path("success").asBoolean(false);
             if (!success) {
                 String errorMsg = root.path("data").path("error").asText("Erro desconhecido");
-                //throw new ImgurUploadException("Imgur recusou o upload: " + errorMsg);
-                //Salvar logo dizendo que deu errado para auditoria
-                //return null
-
+                logger.error("Falha ao fazer upload do escudo da equipe '{}': {}", teamName, errorMsg);
+                return null;
             }
 
-            return root.path("data").path("link").asText();
+            String link = root.path("data").path("link").asText();
+            logger.info("Upload do escudo da equipe '{}' realizado com sucesso. Link: {}", teamName, link);
+            return link;
 
         } catch (ImgurUploadException e) {
-            //Regra de negócio: O fluxo de inscrição não deve ser interrompido por erro ao fazer o upload do escudo.
+            logger.warn("Erro de negócio ao fazer upload do escudo da equipe '{}': {}", teamName, e.getMessage());
             return null;
         } catch (Exception e) {
+            logger.error("Erro inesperado ao fazer upload do escudo da equipe '{}'", teamName, e);
             return null;
         }
     }

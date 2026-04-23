@@ -24,6 +24,7 @@ public class PaymentExpirationJob {
     private PaymentEventService paymentEventService;
 
     @Scheduled(fixedRate = 120 * 1000) // a cada 2 minutos
+    //Entender a parada do @Transactional
     public void checkExpiredPayments() {
         System.out.println("Verificando pagamentos expirados...");
         List<Team> teams = teamRepository.findAllPendingPayments();
@@ -33,7 +34,7 @@ public class PaymentExpirationJob {
                     .filter(p -> p.isPending() && p.getExpiresAt().isBefore(OffsetDateTime.now()))
                     .forEach(p -> {
                         //await chamada para a API do mercadopago para cancelar o pedido
-                        boolean response = mercadoPagoClient.cancelPayment(p.getMercadoPagoId());
+                        boolean response = mercadoPagoClient.cancelPayment(p.getMercadoPagoId(), p.getId());
 
                         if(response){
                             p.expire();

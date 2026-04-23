@@ -175,7 +175,7 @@ public class AdminTournamentService {
                 if (payment.isCanceled()) continue;
 
                 if (payment.isPending()) {
-                    boolean canceled = mercadoPagoClient.cancelPayment(payment.getMercadoPagoId());
+                    boolean canceled = mercadoPagoClient.cancelPayment(payment.getMercadoPagoId(), payment.getId());
                     if (!canceled) {
                         log.warn("Falha ao cancelar pagamento no MP — paymentId: {}, mpId: {}",
                                 payment.getId(), payment.getMercadoPagoId());
