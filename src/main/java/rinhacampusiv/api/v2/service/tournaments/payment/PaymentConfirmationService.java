@@ -1,6 +1,8 @@
-package rinhacampusiv.api.v2.service.tournament.payment;
+package rinhacampusiv.api.v2.service.tournaments.payment;
 
 import com.mercadopago.resources.payment.Payment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.Map;
 
 @Service
 public class PaymentConfirmationService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentConfirmationService.class);
 
     @Autowired
     private SimpMessagingTemplate messageSender;
@@ -49,30 +53,24 @@ public class PaymentConfirmationService {
             paymentRepository.save(payment);
             teamRepository.save(paymentTeam);
 
+            log.info("[PAYMENT] Pagamento aprovado | uuid={} | equipe={} | torneio={}",
+                    payment.getUuid(), paymentTeam.getName(), paymentTeam.getTournament().getName());
+
             Map<String, String> payload = Map.of("status", payment.getStatus().name());
-            messageSender.convertAndSend(
-                    "/topic/payment/" + payment.getUuid(),
-                    payload
-            );
+            messageSender.convertAndSend("/topic/payment/" + payment.getUuid(), payload);
 
             emailService.sendPaymentConfirmationEmail(paymentTeam);
 
         } else if ("cancelled".equals(paymentData.getStatus())) {
 
             payment.expire();
-
             paymentRepository.save(payment);
 
+            log.warn("[PAYMENT] Pagamento expirado via webhook | uuid={} | mpId={}",
+                    payment.getUuid(), mercadoPagoPaymentId);
+
             Map<String, String> payload = Map.of("status", payment.getStatus().name());
-            messageSender.convertAndSend(
-                    "/topic/payment/" + payment.getUuid(),
-                    payload
-            );
-            System.out.println("[Webhook] Pagamento expirado: " + payment.getUuid());
+            messageSender.convertAndSend("/topic/payment/" + payment.getUuid(), payload);
         }
-
     }
-
-
 }
-

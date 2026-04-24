@@ -1,22 +1,17 @@
 package rinhacampusiv.api.v2.controller.users;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserDataUpdateDTO;
-import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
-import rinhacampusiv.api.v2.domain.user.UserRepository;
 import rinhacampusiv.api.v2.service.user.UserService;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")

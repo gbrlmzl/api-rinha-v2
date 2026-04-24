@@ -13,7 +13,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicDetailData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
 import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.service.tournament.PublicTournamentService;
+import rinhacampusiv.api.v2.service.tournaments.PublicTournamentService;
 
 import java.util.List;
 

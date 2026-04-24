@@ -15,17 +15,17 @@ public class EmailSenderLogger {
 
     public void sendingPasswordResetEmailLog(String toEmail, String username) {
         logger.info("[EMAIL] Enviando email de recuperação de senha | destinatário={} | usuário={}",
-                maskEmail(toEmail), username);
+                toEmail, username);
     }
 
-    public void passwordResetEmailSentLog(String toEmail, String username) {
-        logger.info("[EMAIL] Email de recuperação de senha enviado com sucesso | destinatário={} | usuário={}",
-                maskEmail(toEmail), username);
+    public void passwordResetEmailSentLog(String toEmail, String username, long elapsedMs) {
+        logger.info("[EMAIL] Email de recuperação de senha enviado com sucesso | destinatário={} | usuário={} | tempo={}ms",
+                toEmail, username, elapsedMs);
     }
 
-    public void passwordResetEmailErrorLog(String toEmail, String username, Exception e) {
-        logger.error("[EMAIL] Falha ao enviar email de recuperação de senha | destinatário={} | usuário={} | erro={}",
-                maskEmail(toEmail), username, e.getMessage());
+    public void passwordResetEmailErrorLog(String toEmail, String username, Exception e, long elapsedMs) {
+        logger.error("[EMAIL] Falha ao enviar email de recuperação de senha | destinatário={} | usuário={} | erro={} | tempo={}ms",
+                toEmail, username, e.getMessage(), elapsedMs);
     }
 
 
@@ -33,17 +33,17 @@ public class EmailSenderLogger {
 
     public void sendingAccountConfirmationEmailLog(String toEmail, String username) {
         logger.info("[EMAIL] Enviando email de ativação de conta | destinatário={} | usuário={}",
-                maskEmail(toEmail), username);
+                toEmail, username);
     }
 
-    public void accountConfirmationEmailSentLog(String toEmail, String username) {
-        logger.info("[EMAIL] Email de ativação de conta enviado com sucesso | destinatário={} | usuário={}",
-                maskEmail(toEmail), username);
+    public void accountConfirmationEmailSentLog(String toEmail, String username, long elapsedMs) {
+        logger.info("[EMAIL] Email de ativação de conta enviado com sucesso | destinatário={} | usuário={} | tempo={}ms",
+                toEmail, username, elapsedMs);
     }
 
-    public void accountConfirmationEmailErrorLog(String toEmail, String username, Exception e) {
-        logger.error("[EMAIL] Falha ao enviar email de ativação de conta | destinatário={} | usuário={} | erro={}",
-                maskEmail(toEmail), username, e.getMessage());
+    public void accountConfirmationEmailErrorLog(String toEmail, String username, Exception e, long elapsedMs) {
+        logger.error("[EMAIL] Falha ao enviar email de ativação de conta | destinatário={} | usuário={} | erro={} | tempo={}ms",
+                toEmail, username, e.getMessage(), elapsedMs);
     }
 
 
@@ -51,39 +51,37 @@ public class EmailSenderLogger {
 
     public void sendingPaymentConfirmationEmailLog(Team team) {
         logger.info("[EMAIL] Enviando email de confirmação de inscrição | destinatário={} | equipe={} | torneio={}",
-                maskEmail(team.getCaptain().getEmail()),
+                team.getCaptain().getEmail(),
                 team.getName(),
                 team.getTournament().getName());
     }
 
-    public void paymentConfirmationEmailSentLog(Team team) {
-        logger.info("[EMAIL] Email de confirmação de inscrição enviado com sucesso | destinatário={} | equipe={} | torneio={}",
-                maskEmail(team.getCaptain().getEmail()),
-                team.getName(),
-                team.getTournament().getName());
-    }
-
-    public void paymentConfirmationEmailErrorLog(Team team, Exception e) {
-        logger.error("[EMAIL] Falha ao enviar email de confirmação de inscrição | destinatário={} | equipe={} | torneio={} | erro={}",
-                maskEmail(team.getCaptain().getEmail()),
+    public void paymentConfirmationEmailSentLog(Team team, long elapsedMs) {
+        logger.info("[EMAIL] Email de confirmação de inscrição enviado com sucesso | destinatário={} | equipe={} | torneio={} | tempo={}ms",
+                team.getCaptain().getEmail(),
                 team.getName(),
                 team.getTournament().getName(),
-                e.getMessage());
+                elapsedMs);
+    }
+
+    public void paymentConfirmationEmailErrorLog(Team team, Exception e, long elapsedMs) {
+        logger.error("[EMAIL] Falha ao enviar email de confirmação de inscrição | destinatário={} | equipe={} | torneio={} | erro={} | tempo={}ms",
+                team.getCaptain().getEmail(),
+                team.getName(),
+                team.getTournament().getName(),
+                e.getMessage(),
+                elapsedMs);
     }
 
 
     // ─── Utilitário ────────────────────────────────────────────────────────────
 
-    /**
-     * Mascara o endereço de e-mail para evitar exposição de dados pessoais nos logs.
-     * Exemplo: joao.silva@email.com → j********a@email.com
-     */
-    private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) return "***";
-        int atIndex = email.indexOf('@');
-        String local = email.substring(0, atIndex);
-        String domain = email.substring(atIndex);
-        if (local.length() <= 2) return "**" + domain;
-        return local.charAt(0) + "*".repeat(local.length() - 2) + local.charAt(local.length() - 1) + domain;
-    }
+//    private String maskEmail(String email) {
+//        if (email == null || !email.contains("@")) return "***";
+//        int atIndex = email.indexOf('@');
+//        String local = email.substring(0, atIndex);
+//        String domain = email.substring(atIndex);
+//        if (local.length() <= 2) return "**" + domain;
+//        return local.charAt(0) + "*".repeat(local.length() - 2) + local.charAt(local.length() - 1) + domain;
+//    }
 }

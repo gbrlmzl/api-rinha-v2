@@ -16,7 +16,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
-import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentService;
+import rinhacampusiv.api.v2.service.tournaments.admin.AdminTournamentService;
 
 @RestController
 @RequestMapping("/admin/tournaments")
@@ -29,6 +29,7 @@ public class AdminTournamentController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TournamentAdminDetailData> create(
             @RequestPart("data") @Valid TournamentCreationData tournamentData,
+            //Lembrar de deixar a imagem obrigatória
             @RequestPart(value = "image", required = false) MultipartFile image,
             UriComponentsBuilder uriBuilder) {
         TournamentAdminDetailData response = adminService.createTournament(tournamentData, image);

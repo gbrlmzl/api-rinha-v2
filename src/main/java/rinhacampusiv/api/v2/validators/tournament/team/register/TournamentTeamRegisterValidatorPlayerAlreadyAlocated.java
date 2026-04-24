@@ -25,17 +25,20 @@ public class TournamentTeamRegisterValidatorPlayerAlreadyAlocated implements Tou
 
         for (PlayerRegisterData playerData : players) {
 
-            if (playerRepository.existsBySchoolIdAndTeamTournamentIdAndTeamStatusNot(
-                    playerData.schoolId(), tournament.getId(),TeamStatus.CANCELED)) {
+            if (playerData.schoolId() != null) {
+                if (playerRepository.existsBySchoolIdAndTeamTournamentIdAndTeamStatusNot(
+                        playerData.schoolId(), tournament.getId(), TeamStatus.CANCELED)) {
 
-                throw new ValidatorException(
-                        String.format(
-                                "Já existe um jogador com a matrícula nº %s inscrito em uma equipe neste torneio",
-                                playerData.schoolId()
-                        )
-                );
+                    throw new ValidatorException(
+                            String.format(
+                                    "Já existe um jogador com a matrícula nº %s inscrito em uma equipe neste torneio",
+                                    playerData.schoolId()
+                            )
+                    );
+                }
+            }
 
-            } else if (playerRepository.existsByNicknameAndTeamTournamentIdAndTeamStatusNot(
+            if (playerRepository.existsByNicknameAndTeamTournamentIdAndTeamStatusNot(
                     playerData.nickname(), tournament.getId(), TeamStatus.CANCELED)) {
 
                 throw new ValidatorException(

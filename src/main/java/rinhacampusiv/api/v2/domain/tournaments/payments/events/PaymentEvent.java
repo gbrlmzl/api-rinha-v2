@@ -16,6 +16,19 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 public class PaymentEvent {
 
+    public PaymentEvent(PaymentEntity payment, PaymentEventType type) {
+        this.payment = payment;
+        this.eventType = type;
+    }
+
+    public PaymentEvent(PaymentEntity payment, PaymentEventType type, MercadoPagoEventData mpData) {
+        this(payment, type);
+        this.mercadoPagoId = mpData.mpId();
+        this.statusFromMp = mpData.statusFromMp();
+        this.statusDetailFromMp = mpData.statusDetailFromMp();
+        this.errorMessage = mpData.errorMessage();
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

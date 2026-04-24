@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.response.PaymentConfirmationInfo;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.infra.exception.SendEmailException;
+import rinhacampusiv.api.v2.infra.loggers.EmailSenderLogger;
 
 import java.time.format.DateTimeFormatter;
 
@@ -23,6 +24,9 @@ public class EmailService {
     @Autowired
     private EmailTemplateService templateService;
 
+    @Autowired
+    private EmailSenderLogger emailLogger;
+
     @Value("${spring.mail.username}")
     private String fromEmail;
 
@@ -31,6 +35,9 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String username, String token) {
+        emailLogger.sendingPasswordResetEmailLog(toEmail, username);
+        long start = System.currentTimeMillis();
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -44,14 +51,19 @@ public class EmailService {
             helper.setText(html, true);
 
             mailSender.send(message);
+            emailLogger.passwordResetEmailSentLog(toEmail, username, System.currentTimeMillis() - start);
 
         } catch (MessagingException e) {
+            emailLogger.passwordResetEmailErrorLog(toEmail, username, e, System.currentTimeMillis() - start);
             throw new SendEmailException(e.getMessage());
         }
     }
 
     @Async
     public void sendAccountConfirmationEmail(String toEmail, String username, String token) {
+        emailLogger.sendingAccountConfirmationEmailLog(toEmail, username);
+        long start = System.currentTimeMillis();
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -65,8 +77,10 @@ public class EmailService {
             helper.setText(html, true);
 
             mailSender.send(message);
+            emailLogger.accountConfirmationEmailSentLog(toEmail, username, System.currentTimeMillis() - start);
 
         } catch (MessagingException e) {
+            emailLogger.accountConfirmationEmailErrorLog(toEmail, username, e, System.currentTimeMillis() - start);
             throw new SendEmailException(e.getMessage());
         }
     }
@@ -74,6 +88,9 @@ public class EmailService {
     //TODO
     @Async
     public void sendPaymentConfirmationEmail(Team paymentTeam) {
+        emailLogger.sendingPaymentConfirmationEmailLog(paymentTeam);
+        long start = System.currentTimeMillis();
+
         try {
             var dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             String toEmail = paymentTeam.getCaptain().getEmail();
@@ -95,14 +112,12 @@ public class EmailService {
             helper.setSubject("Rinha Campus IV — Inscrição confirmada");
             helper.setText(html, true);
 
-            System.out.println("Chegou aqui, email enviado");
             mailSender.send(message);
-
+            emailLogger.paymentConfirmationEmailSentLog(paymentTeam, System.currentTimeMillis() - start);
 
         } catch (MessagingException e) {
+            emailLogger.paymentConfirmationEmailErrorLog(paymentTeam, e, System.currentTimeMillis() - start);
             throw new SendEmailException(e.getMessage());
         }
     }
-
 }
-

@@ -15,7 +15,7 @@ import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedP
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.CanceledTeamData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
-import rinhacampusiv.api.v2.service.tournament.registration.TournamentRegistrationService;
+import rinhacampusiv.api.v2.service.tournaments.registration.TournamentRegistrationService;
 
 import java.net.URI;
 

@@ -21,14 +21,14 @@ public class UploadImageLogger {
                 file.getSize() / 1024);
     }
 
-    public void shieldUploadSuccessLog(String teamName, String imageUrl) {
-        logger.info("[IMGUR] Upload de escudo concluído com sucesso | equipe={} | url={}",
-                teamName, imageUrl);
+    public void shieldUploadSuccessLog(String teamName, String imageUrl, long elapsedMs) {
+        logger.info("[IMGUR] Upload de escudo concluído com sucesso | equipe={} | url={} | tempo={}ms",
+                teamName, imageUrl, elapsedMs);
     }
 
-    public void shieldUploadErrorLog(String teamName, Exception e) {
-        logger.error("[IMGUR] Falha ao fazer upload do escudo | equipe={} | erro={}",
-                teamName, e.getMessage());
+    public void shieldUploadErrorLog(String teamName, Exception e, long elapsedMs) {
+        logger.error("[IMGUR] Falha ao fazer upload do escudo | equipe={} | erro={} | tempo={}ms",
+                teamName, e.getMessage(), elapsedMs);
     }
 
 
@@ -42,14 +42,14 @@ public class UploadImageLogger {
                 file.getSize() / 1024);
     }
 
-    public void tournamentImageUploadSuccessLog(String tournamentName, String imageUrl) {
-        logger.info("[IMGUR] Upload de imagem do torneio concluído com sucesso | torneio={} | url={}",
-                tournamentName, imageUrl);
+    public void tournamentImageUploadSuccessLog(String tournamentName, String imageUrl, long elapsedMs) {
+        logger.info("[IMGUR] Upload de imagem do torneio concluído com sucesso | torneio={} | url={} | tempo={}ms",
+                tournamentName, imageUrl, elapsedMs);
     }
 
-    public void tournamentImageUploadErrorLog(String tournamentName, Exception e) {
-        logger.error("[IMGUR] Falha ao fazer upload da imagem do torneio | torneio={} | erro={}",
-                tournamentName, e.getMessage());
+    public void tournamentImageUploadErrorLog(String tournamentName, Exception e, long elapsedMs) {
+        logger.error("[IMGUR] Falha ao fazer upload da imagem do torneio | torneio={} | erro={} | tempo={}ms",
+                tournamentName, e.getMessage(), elapsedMs);
     }
 
 
@@ -63,13 +63,21 @@ public class UploadImageLogger {
                 file.getSize() / 1024);
     }
 
-    public void profilePicUploadSuccessLog(String userId, String imageUrl) {
-        logger.info("[IMGUR] Upload de foto de perfil concluído com sucesso | userId={} | url={}",
-                userId, imageUrl);
+    public void profilePicUploadSuccessLog(String userId, String imageUrl, long elapsedMs) {
+        logger.info("[IMGUR] Upload de foto de perfil concluído com sucesso | userId={} | url={} | tempo={}ms",
+                userId, imageUrl, elapsedMs);
     }
 
-    public void profilePicUploadErrorLog(String userId, Exception e) {
-        logger.error("[IMGUR] Falha ao fazer upload da foto de perfil | userId={} | erro={}",
-                userId, e.getMessage());
+    public void profilePicUploadErrorLog(String userId, Exception e, long elapsedMs) {
+        logger.error("[IMGUR] Falha ao fazer upload da foto de perfil | userId={} | erro={} | tempo={}ms",
+                userId, e.getMessage(), elapsedMs);
+    }
+
+
+    // ─── Validação ─────────────────────────────────────────────────────────────
+
+    public void imageValidationFailedLog(String reason, String contentType, long sizeBytes) {
+        logger.warn("[IMGUR] Imagem rejeitada na validação | motivo={} | formato={} | tamanho={}KB",
+                reason, contentType != null ? contentType : "desconhecido", sizeBytes / 1024);
     }
 }

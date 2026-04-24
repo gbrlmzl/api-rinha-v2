@@ -83,12 +83,10 @@ public class PaymentEntity {
         this.statusDetail = PaymentStatusDetail.fromMercadoPago(data.getStatusDetail());
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
-
         this.uuid = UUID.randomUUID().toString();
-        this.expiresAt    = data.getDateOfExpiration();
+        this.expiresAt = data.getDateOfExpiration();
         this.qrCode = data.getPointOfInteraction().getTransactionData().getQrCode();
         this.payer = payerName;
-
     }
 
     public void linkTeam (Team team){

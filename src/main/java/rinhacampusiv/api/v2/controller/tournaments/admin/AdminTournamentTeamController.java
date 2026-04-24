@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
-import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentTeamService;
+import rinhacampusiv.api.v2.service.tournaments.admin.AdminTournamentTeamService;
 
 import java.util.List;
 

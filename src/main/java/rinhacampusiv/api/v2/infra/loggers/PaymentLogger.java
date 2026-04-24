@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
-import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -24,14 +23,13 @@ public class PaymentLogger {
     }
 
 
-    public void foundPaymentInfoLog(Payment payment) {
-        logger.info("[MP] Pagamento encontrado | mercadoPagoId={} | status={} | statusDetail={} | valor={} | pagador={} | email={} | dataCriacao={} | dataAprovacao={}",
+    public void foundPaymentInfoLog(Payment payment, String payer) {
+        logger.info("[MP] Pagamento encontrado | mercadoPagoId={} | status={} | statusDetail={} | valor={} | pagador={} | dataCriacao={} | dataAprovacao={}",
                 payment.getId(),
                 payment.getStatus(),
                 payment.getStatusDetail(),
                 payment.getTransactionAmount(),
-                payment.getPayer() != null ? payment.getPayer().getFirstName() + " " + payment.getPayer().getLastName() : "N/A",
-                payment.getPayer() != null ? payment.getPayer().getEmail() : "N/A",
+                payer,
                 payment.getDateCreated(),
                 payment.getDateApproved()
         );
@@ -75,14 +73,15 @@ public class PaymentLogger {
         );
     }
 
-    public void paymentEmittedInfoLog(Payment payment) {
-        logger.info("[MP] Pagamento emitido com sucesso | mercadoPagoId={} | status={} | statusDetail={} | valor={} | pagador={} | email={} | dataCriacao={}",
+    public void paymentEmittedInfoLog(Payment payment, PaymentRegistrationDataMercadoPago data) {
+        logger.info("[MP] Pagamento emitido com sucesso | mercadoPagoId={} | status={} | statusDetail={} | valor={} | pagador={} {} | email={} | dataCriacao={}",
                 payment.getId(),
                 payment.getStatus(),
                 payment.getStatusDetail(),
                 payment.getTransactionAmount(),
-                payment.getPayer() != null ? payment.getPayer().getFirstName() + " " + payment.getPayer().getLastName() : "N/A",
-                payment.getPayer() != null ? payment.getPayer().getEmail() : "N/A",
+                data.nome(),
+                data.sobrenome(),
+                data.email(),
                 payment.getDateCreated()
         );
     }

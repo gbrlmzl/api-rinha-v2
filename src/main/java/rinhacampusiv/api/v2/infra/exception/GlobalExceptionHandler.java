@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.payments.TeamWithoutPaymentException;
 import rinhacampusiv.api.v2.infra.exception.user.InvalidCurrentPasswordException;
-import rinhacampusiv.api.v2.infra.exception.user.InvalidProfilePicException;
 
 import java.util.Map;
 
@@ -200,8 +199,14 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(InvalidProfilePicException.class)
-    public ResponseEntity<?> tratarErroInvalidProfilePic(InvalidProfilePicException ex) {
+//    @ExceptionHandler(InvalidProfilePicException.class)
+//    public ResponseEntity<?> tratarErroInvalidProfilePic(InvalidProfilePicException ex) {
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                .body(Map.of("error", ex.getMessage()));
+//    }
+
+    @ExceptionHandler(InvalidImageException.class)
+    public ResponseEntity<?> tratarErroInvalidImage(InvalidImageException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }

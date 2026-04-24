@@ -24,17 +24,22 @@ public class TournamentRetryRegisterValidatorPlayerAlreadyAlocated implements To
 
         for (Player player : players) {
 
-            if (playerRepository.existsBySchoolIdAndTeamTournamentIdAndTeamIdNot(
-                    player.getSchoolId(), tournament.getId(), team.getId())){
+            if(player.getSchoolId() != null) {
+                if (playerRepository.existsBySchoolIdAndTeamTournamentIdAndTeamIdNot(
+                        player.getSchoolId(), tournament.getId(), team.getId())) {
 
-                throw new ValidatorException(
-                        String.format(
-                                "Já existe um jogador com a matrícula nº %s inscrito em uma equipe neste torneio",
-                                player.getSchoolId()
-                        )
-                );
+                    throw new ValidatorException(
+                            String.format(
+                                    "Já existe um jogador com a matrícula nº %s inscrito em uma equipe neste torneio",
+                                    player.getSchoolId()
+                            )
+                    );
 
-            } else if (playerRepository.existsByNicknameAndTeamTournamentIdAndTeamIdNot(
+                }
+            }
+
+
+            if (playerRepository.existsByNicknameAndTeamTournamentIdAndTeamIdNot(
                     player.getName(), tournament.getId(), team.getId())) {
 
                 throw new ValidatorException(

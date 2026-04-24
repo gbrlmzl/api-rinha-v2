@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.service.tournament;
+package rinhacampusiv.api.v2.service.tournaments;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;

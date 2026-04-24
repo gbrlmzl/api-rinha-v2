@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventData;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventResponseData;
-import rinhacampusiv.api.v2.service.tournament.admin.AdminTournamentPaymentService;
+import rinhacampusiv.api.v2.service.tournaments.admin.AdminTournamentPaymentService;
 
 import java.util.List;
 

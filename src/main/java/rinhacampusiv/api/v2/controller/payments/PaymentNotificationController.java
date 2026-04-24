@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import rinhacampusiv.api.v2.infra.external.mercadopago.WebHookNotificationData;
-import rinhacampusiv.api.v2.service.tournament.payment.PaymentWebhookService;
+import rinhacampusiv.api.v2.service.tournaments.payment.PaymentWebhookService;
 
 @RestController
 @RequestMapping("/webhook")

@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.service.tournament.admin;
+package rinhacampusiv.api.v2.service.tournaments.admin;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
-import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
@@ -24,8 +22,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 import rinhacampusiv.api.v2.infra.external.ImgurClient;
-import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
-import rinhacampusiv.api.v2.service.tournament.payment.PaymentEventService;
+import rinhacampusiv.api.v2.service.tournaments.payment.PaymentCancellationService;
 import rinhacampusiv.api.v2.validators.tournament.creation.TournamentCreationValidator;
 import rinhacampusiv.api.v2.validators.tournament.update.TournamentUpdateValidator;
 
@@ -51,32 +48,28 @@ public class AdminTournamentService {
     private List<TournamentUpdateValidator> updateValidators;
 
     @Autowired
-    private MercadoPagoClient mercadoPagoClient;
-
-    @Autowired
     private ImgurClient imgurClient;
 
     @Autowired
-    private PaymentEventService paymentEventService;
+    private PaymentCancellationService paymentCancellationService;
 
     @Transactional
     public TournamentAdminDetailData createTournament(TournamentCreationData tournamentData, MultipartFile image) {
+        log.info("[TORNEIO] Criando torneio | nome={} | jogo={} | maxEquipes={}",
+                tournamentData.name(), tournamentData.game(), tournamentData.maxTeams());
 
-        if (image == null || image.isEmpty()) {
-            throw new ValidatorException("A imagem do torneio é obrigatória.");
-        }
-
+        imgurClient.validateImage(image);
         creationValidators.forEach(v -> v.validar(tournamentData));
 
-        //String imageUrl = imgurClient.uploadTournamentImage(image, tournamentData.name());
+        String imageUrl = imgurClient.uploadTournamentImage(image, tournamentData.name());
         Tournament tournament = new Tournament(tournamentData);
-        tournament.setImageUrl(null);
+        tournament.setImageUrl(imageUrl);
 
         tournamentRepository.save(tournament);
 
+        log.info("[TORNEIO] Torneio criado com sucesso | id={} | nome={}", tournament.getId(), tournament.getName());
         return new TournamentAdminDetailData(tournament);
     }
-
 
     @Transactional(readOnly = true)
     public Page<TournamentAdminSummaryData> getAllTournaments(TournamentGame game, Pageable pageable) {
@@ -114,11 +107,11 @@ public class AdminTournamentService {
         return new TournamentAdminDetailData(tournament);
     }
 
-
     @Transactional
     public TournamentAdminDetailData updateTournament(Long id, TournamentUpdateData data, MultipartFile image) {
-
         Tournament tournament = findTournamentById(id);
+
+        log.info("[TORNEIO] Atualizando torneio | id={} | nome={}", id, tournament.getName());
 
         updateValidators.forEach(v -> v.validar(tournament, data));
 
@@ -135,11 +128,15 @@ public class AdminTournamentService {
 
             if (data.maxTeams().equals(activeTeams) && currentStatus == TournamentStatus.OPEN) {
                 tournament.setStatus(TournamentStatus.FULL);
+                log.info("[TORNEIO] Status atualizado para FULL | id={} | equipes={}", id, activeTeams);
             } else if (data.maxTeams() > activeTeams && currentStatus == TournamentStatus.FULL) {
                 tournament.setStatus(TournamentStatus.OPEN);
+                log.info("[TORNEIO] Status atualizado para OPEN | id={} | equipes={} | novoMax={}",
+                        id, activeTeams, data.maxTeams());
             }
         }
 
+        log.info("[TORNEIO] Torneio atualizado com sucesso | id={} | nome={}", id, tournament.getName());
         return new TournamentAdminDetailData(tournament);
     }
 
@@ -153,44 +150,24 @@ public class AdminTournamentService {
         }
 
         if (totalTeams == 0) {
-            log.warn("Torneio deletado — ID: {}, Nome: {}, Jogo: {}",
+            log.warn("[TORNEIO] Torneio deletado — ID: {}, Nome: {}, Jogo: {}",
                     tournament.getId(), tournament.getName(), tournament.getGame());
             tournamentRepository.delete(tournament);
             return;
         }
 
-        // force == true com equipes — cancela com cascade
         List<Team> teams = teamRepository.findAllByTournamentIdWithDetails(id);
-        cancelPayments(teams); //Cancela o pagamento das equipes que existem.
+        cancelPayments(teams);
 
         tournament.setStatus(TournamentStatus.CANCELED);
 
-        log.warn("Torneio cancelado — ID: {}, Nome: {}, Jogo: {}, Equipes afetadas: {}",
+        log.warn("[TORNEIO] Torneio cancelado — ID: {}, Nome: {}, Jogo: {}, Equipes afetadas: {}",
                 tournament.getId(), tournament.getName(), tournament.getGame(), totalTeams);
     }
 
     private void cancelPayments(List<Team> teams) {
         for (Team team : teams) {
-            for (PaymentEntity payment : team.getPayments()) {
-                if (payment.isCanceled()) continue;
-
-                if (payment.isPending()) {
-                    boolean canceled = mercadoPagoClient.cancelPayment(payment.getMercadoPagoId(), payment.getId());
-                    if (!canceled) {
-                        log.warn("Falha ao cancelar pagamento no MP — paymentId: {}, mpId: {}",
-                                payment.getId(), payment.getMercadoPagoId());
-                    }
-                }
-
-                if (payment.isApproved()) {
-                    log.warn("Pagamento APROVADO cancelado por admin — paymentId: {}, valor: {}, payer: {}",
-                            payment.getId(), payment.getValue(), payment.getPayer());
-                }
-
-                payment.cancelByAdmin();
-                paymentEventService.save(payment, PaymentEventType.CANCELED_BY_ADMIN);
-            }
-
+            paymentCancellationService.cancelTeamPayments(team, "TORNEIO");
             team.cancelPayment();
             team.setActive(false);
         }

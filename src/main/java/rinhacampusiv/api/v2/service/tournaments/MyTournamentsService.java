@@ -1,4 +1,4 @@
-package rinhacampusiv.api.v2.service.tournament;
+package rinhacampusiv.api.v2.service.tournaments;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

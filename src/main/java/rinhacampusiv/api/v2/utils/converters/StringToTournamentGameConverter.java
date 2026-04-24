@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.infra.exception.ValidatorException;
 
+//Resolve a filtragem
 @Component
 public class StringToTournamentGameConverter implements Converter<String, TournamentGame> {
     @Override

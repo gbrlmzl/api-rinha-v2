@@ -13,9 +13,9 @@ import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
 import rinhacampusiv.api.v2.domain.user.LoginData;
 import rinhacampusiv.api.v2.domain.user.RegisterData;
 import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
-import rinhacampusiv.api.v2.service.user.UserService;
 import rinhacampusiv.api.v2.service.authentication.UserAuthService;
 import rinhacampusiv.api.v2.service.authentication.UserRegisterService;
+import rinhacampusiv.api.v2.service.user.UserService;
 
 import java.util.Map;
 

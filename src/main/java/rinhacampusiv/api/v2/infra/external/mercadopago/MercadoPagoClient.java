@@ -43,13 +43,13 @@ public class MercadoPagoClient {
 
     // ─── Consultar pagamento ───────────────────────────────────────────────────
 
-    public Payment findPayment(String mercadoPagoId, boolean isWebHook) {
+    public Payment findPayment(String mercadoPagoId, boolean isWebHook, String payer) {
         logger.searchingPaymentInfoLog(mercadoPagoId, isWebHook);
         try {
             initPaymentClient();
             Payment payment = paymentClient.get(Long.valueOf(mercadoPagoId));
 
-            logger.foundPaymentInfoLog(payment);
+            logger.foundPaymentInfoLog(payment, payer);
 
             return payment;
 
@@ -126,7 +126,7 @@ public class MercadoPagoClient {
             initPaymentClient();
 
             Payment paymentCreated = paymentClient.create(paymentData, requestOptions);
-            logger.paymentEmittedInfoLog(paymentCreated);
+            logger.paymentEmittedInfoLog(paymentCreated, data);
 
             return paymentCreated;
         } catch (MPApiException e) {

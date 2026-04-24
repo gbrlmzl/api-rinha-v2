@@ -1,11 +1,16 @@
-package rinhacampusiv.api.v2.service.tournament.registration;
+package rinhacampusiv.api.v2.service.tournaments.registration;
 
 import com.mercadopago.resources.payment.Payment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
+import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
+import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventRepository;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventType;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.CancelRegistrationDto;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
@@ -28,7 +33,6 @@ import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
 import rinhacampusiv.api.v2.infra.external.ImgurClient;
 import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
-import rinhacampusiv.api.v2.service.tournament.payment.PaymentEventService;
 import rinhacampusiv.api.v2.validators.tournament.team.register.TournamentTeamRegisterValidator;
 import rinhacampusiv.api.v2.validators.tournament.team.register.retry.TournamentRetryRegisterValidator;
 
@@ -40,11 +44,16 @@ import java.util.Optional;
 @Service
 public class TournamentRegistrationService {
 
+    private static final Logger log = LoggerFactory.getLogger(TournamentRegistrationService.class);
+
     @Autowired
     private ImgurClient imgurClient;
 
     @Autowired
     private TeamRepository teamRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Autowired
     private List<TournamentTeamRegisterValidator> tournamentTeamRegisterValidators;
@@ -59,10 +68,7 @@ public class TournamentRegistrationService {
     private MercadoPagoClient mercadoPagoClient;
 
     @Autowired
-    private PaymentEventService paymentEventService;
-
-    //Implementar modulo de fazer o upload para o Imgur e excluir caso o pagamento seja expirado.
-
+    private PaymentEventRepository eventRepository;
 
     public GeneratedPaymentData registerTeam(Long tournamentId, TournamentRegistrationData registrationData,
                                              MultipartFile teamShieldFile,
@@ -74,8 +80,13 @@ public class TournamentRegistrationService {
         User captain = (User) authentication.getPrincipal();
 
         if (registrationData.teamData() == null && registrationData.paymentData() != null) {
+            log.info("[REGISTRO] Tentativa de re-inscrição | torneio={} | capitão={}",
+                    tournament.getName(), captain.getUsername());
             return retryRegisterTeam(tournament, captain, registrationData.paymentData(), authentication);
         }
+
+        log.info("[REGISTRO] Iniciando inscrição de equipe | torneio={} | equipe={} | capitão={}",
+                tournament.getName(), registrationData.teamData().teamName(), captain.getUsername());
 
         tournamentTeamRegisterValidators.forEach(v -> v.validate(registrationData, tournament));
 
@@ -90,92 +101,97 @@ public class TournamentRegistrationService {
         Team team = new Team(teamData, captain, tournament);
         team.setShieldUrl(shieldUrl);
 
-        return linkPaymentInTeam(team, paymentData);
+        GeneratedPaymentData result = linkPaymentInTeam(team, paymentData);
+
+        log.info("[REGISTRO] Equipe inscrita com sucesso | torneio={} | equipe={} | paymentUuid={}",
+                tournament.getName(), team.getName(), result.uuid());
+
+        return result;
     }
 
-    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain, PaymentRegistrationDataMercadoPago paymentData, Authentication authentication) {
+    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain,
+                                                   PaymentRegistrationDataMercadoPago paymentData,
+                                                   Authentication authentication) {
+        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(
+                captain.getId(), tournament.getId(), TeamStatus.CANCELED);
 
-        //Encontrar equipe vinculada ao captain
-        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournament.getId(), TeamStatus.CANCELED);
         if (team.isEmpty()) {
             throw new RuntimeException("Não existe equipe cadastrada para retry");
         }
-        //Como validar esse retry?
 
         Team teamToRetry = team.get();
         tournamentRetryRegisterValidators.forEach(v -> v.validate(tournament, teamToRetry));
 
-        return linkPaymentInTeam(teamToRetry, paymentData);
+        GeneratedPaymentData result = linkPaymentInTeam(teamToRetry, paymentData);
 
+        log.info("[REGISTRO] Re-inscrição realizada com sucesso | torneio={} | equipe={} | paymentUuid={}",
+                tournament.getName(), teamToRetry.getName(), result.uuid());
+
+        return result;
     }
 
     public GeneratedPaymentData linkPaymentInTeam(Team teamToRegister, PaymentRegistrationDataMercadoPago paymentData) {
-
         PaymentEntity newPayment = generateNewPayment(teamToRegister, paymentData);
         newPayment.linkTeam(teamToRegister);
         teamToRegister.paymentGenerated(newPayment);
 
         teamRepository.save(teamToRegister);
-        paymentEventService.save(newPayment, PaymentEventType.PAYMENT_GENERATED);
-        return new GeneratedPaymentData(newPayment);
+
+        PaymentEntity savedPayment = paymentRepository
+                .findByMercadoPagoId(newPayment.getMercadoPagoId())
+                .orElseGet(() -> paymentRepository.save(newPayment));
+
+        eventRepository.save(new PaymentEvent(savedPayment, PaymentEventType.PAYMENT_GENERATED));
+        return new GeneratedPaymentData(savedPayment);
     }
 
     public PaymentEntity generateNewPayment(Team team, PaymentRegistrationDataMercadoPago paymentData) {
-
         String payerName = paymentData.nome() + " " + paymentData.sobrenome();
-
-
-        BigDecimal value = calculateRegistatrionPrice(team.getPlayers().size());
-
-
+        BigDecimal value = calculateRegistrationPrice(team.getPlayers().size());
         Payment generatedPayment = mercadoPagoClient.emitPayment(paymentData, value);
-
         return new PaymentEntity(generatedPayment, payerName);
-
-
     }
 
-
-    public CanceledTeamData updateTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication){
+    public CanceledTeamData updateTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication) {
         validateAuthentication(authentication);
 
         User captain = (User) authentication.getPrincipal();
-
         Tournament tournament = getTournamentOrThrow(tournamentId);
         validateTournamentStatus(tournament);
 
-        if(!updateDTO.cancelRegistration()){
+        if (!updateDTO.cancelRegistration()) {
             throw new IllegalStateException("Operação não permitida");
         }
 
         Optional<Team> optionalTeam = findTeam(captain, tournamentId);
-        if(optionalTeam.isEmpty()){
+        if (optionalTeam.isEmpty()) {
             throw new TeamNotFoundException("Não foi encontrada nenhuma equipe cadastrada para cancelar!");
         }
 
         Team teamToCancel = optionalTeam.get();
         PaymentEntity paymentToCancel = teamToCancel.getPayments().getLast();
 
-        if(!paymentToCancel.isCanceled()){
-            //Se o pagamento ainda não estiver com o status de cancelado, quer dizer que o pagamento do mercadoPago ainda está funcionando.
-            //Nesse cenário, deve-se cancelar o pagamento do mercadoPago manualmente.
-            boolean response = mercadoPagoClient.cancelPayment(paymentToCancel.getMercadoPagoId(), paymentToCancel.getId());
+        log.info("[REGISTRO] Solicitação de cancelamento de inscrição | torneio={} | equipe={} | capitão={}",
+                tournament.getName(), teamToCancel.getName(), captain.getUsername());
 
-            if(!response){
-                //Log de Falha ao atualizar
-                //throw new MercadoPagoPaymentException("Erro ao cancelar a inscrição. Tente novamente mais tarde");
+        if (!paymentToCancel.isCanceled()) {
+            boolean response = mercadoPagoClient.cancelPayment(paymentToCancel.getMercadoPagoId(), paymentToCancel.getId());
+            if (!response) {
+                log.warn("[REGISTRO] Falha ao cancelar pagamento no MP durante cancelamento de inscrição | equipe={} | mpId={}",
+                        teamToCancel.getName(), paymentToCancel.getMercadoPagoId());
             }
             paymentToCancel.cancelByUser();
-
         }
 
         teamToCancel.cancelByUser();
-        paymentEventService.save(paymentToCancel, PaymentEventType.CANCELED_BY_USER);
+        eventRepository.save(new PaymentEvent(paymentToCancel, PaymentEventType.CANCELED_BY_USER));
         teamRepository.save(teamToCancel);
+
+        log.info("[REGISTRO] Inscrição cancelada com sucesso | torneio={} | equipe={}",
+                tournament.getName(), teamToCancel.getName());
 
         return new CanceledTeamData(teamToCancel);
     }
-
 
     public boolean checkExistentTeamNameInTournament(Long tournamentId, String name) {
         List<TeamStatus> status = Arrays.asList(
@@ -183,7 +199,6 @@ public class TournamentRegistrationService {
                 TeamStatus.EXPIRED_PAYMENT_PROBLEM,
                 TeamStatus.CANCELED
         );
-
         return teamRepository.existsByNameAndTournamentIdAndStatusNotIn(name, tournamentId, status);
     }
 
@@ -192,7 +207,6 @@ public class TournamentRegistrationService {
 
         User captain = (User) authentication.getPrincipal();
         Tournament tournament = getTournamentOrThrow(tournamentId);
-
         validateTournamentStatus(tournament);
 
         Optional<Team> team = findTeam(captain, tournamentId);
@@ -204,6 +218,8 @@ public class TournamentRegistrationService {
 
         return handleNoTeam(tournament, maxTeamsReached);
     }
+
+    // ─── Auxiliares ────────────────────────────────────────────────────────────
 
     private void validateAuthentication(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
@@ -253,23 +269,7 @@ public class TournamentRegistrationService {
         return new TournamentRegistrationStatusData(registrationData);
     }
 
-
-
-
-
-
-    //Auxiliares
-    private BigDecimal calculateRegistatrionPrice(Integer playersAmount) {
-        BigDecimal value;
-        if (playersAmount == 5) {
-            value = new BigDecimal(5);
-        } else {
-            value = new BigDecimal(6);
-        }
-
-        return value;
-
+    private BigDecimal calculateRegistrationPrice(Integer playersAmount) {
+        return playersAmount == 5 ? new BigDecimal(5) : new BigDecimal(6);
     }
-
-
 }
