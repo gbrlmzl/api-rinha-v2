@@ -3,11 +3,13 @@ package rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin;
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.URL;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
+import rinhacampusiv.api.v2.validators.constraints.EndsAtAfterStartsAt;
 import rinhacampusiv.api.v2.validators.constraints.FutureByAtLeastHours;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+@EndsAtAfterStartsAt(hours = 1, message = "O torneio deve terminar pelo menos 1 hora após o início")
 public record TournamentCreationData(
         @NotBlank(message = "O nome do torneio é obrigatório")
         @Size(min=10, max=50)
@@ -27,6 +29,9 @@ public record TournamentCreationData(
         @NotNull(message = "A data de início é obrigatória")
         @FutureByAtLeastHours(value = 1, message = "O torneio deve começar em pelo menos 1 hora")
         OffsetDateTime startsAt,
+
+        @NotNull(message = "A data de término é obrigatória")
+        OffsetDateTime endsAt,
 
         @NotBlank(message = "A descrição é obrigatória")
         String description,

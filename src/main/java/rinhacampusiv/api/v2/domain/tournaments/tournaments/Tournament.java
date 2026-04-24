@@ -64,6 +64,7 @@ public class Tournament {
         this.maxTeams = tournamentDto.maxTeams();
         this.prizePool = tournamentDto.prizePool();
         this.startsAt = tournamentDto.startsAt();
+        this.endsAt = tournamentDto.endsAt();
         this.createdAt = OffsetDateTime.now();
         this.description = tournamentDto.description();
         this.rulesUrl = tournamentDto.rulesUrl();
@@ -75,10 +76,12 @@ public class Tournament {
         if (data.maxTeams() != null) this.maxTeams = data.maxTeams();
         if (data.prizePool() != null) this.prizePool = data.prizePool();
         if (data.startsAt() != null) this.startsAt = data.startsAt();
+        if (data.endsAt() != null) this.endsAt = data.endsAt();
         if (data.description() != null) this.description = data.description();
         if (data.imageUrl() != null) this.imageUrl = data.imageUrl();
         if (data.status() != null) this.status = data.status();
         if (data.status() == TournamentStatus.FINISHED || data.status() == TournamentStatus.CANCELED) this.endsAt = OffsetDateTime.now();
         if (data.rulesUrl() != null) this.rulesUrl = data.rulesUrl();
     }
+
 }

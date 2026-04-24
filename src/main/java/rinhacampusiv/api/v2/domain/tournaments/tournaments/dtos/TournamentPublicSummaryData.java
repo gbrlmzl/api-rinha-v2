@@ -15,6 +15,7 @@ public record TournamentPublicSummaryData(
         Integer confirmedTeamsCount,
         Integer maxTeams,
         OffsetDateTime startsAt,
+        OffsetDateTime endsAt,
         BigDecimal prizePool,
         String imageUrl,
         String rulesUrl
@@ -28,6 +29,7 @@ public record TournamentPublicSummaryData(
                 confirmedTeamsCount,
                 tournament.getMaxTeams(),
                 tournament.getStartsAt(),
+                tournament.getEndsAt(),
                 tournament.getPrizePool(),
                 tournament.getImageUrl(),
                 tournament.getRulesUrl()

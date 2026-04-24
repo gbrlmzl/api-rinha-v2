@@ -16,6 +16,7 @@ public record TournamentUpdateData(
         @PositiveOrZero
         BigDecimal prizePool,
         OffsetDateTime startsAt,
+        OffsetDateTime endsAt,
         String description,
         String imageUrl,
         TournamentStatus status,
