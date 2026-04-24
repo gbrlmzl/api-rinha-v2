@@ -68,9 +68,9 @@ public class AdminTournamentService {
 
         creationValidators.forEach(v -> v.validar(tournamentData));
 
-        String imageUrl = imgurClient.uploadTournamentImage(image, tournamentData.name());
+        //String imageUrl = imgurClient.uploadTournamentImage(image, tournamentData.name());
         Tournament tournament = new Tournament(tournamentData);
-        tournament.setImageUrl(imageUrl);
+        tournament.setImageUrl(null);
 
         tournamentRepository.save(tournament);
 

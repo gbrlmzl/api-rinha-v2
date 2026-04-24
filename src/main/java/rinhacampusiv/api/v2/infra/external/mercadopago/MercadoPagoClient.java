@@ -118,7 +118,7 @@ public class MercadoPagoClient {
                 .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
                 .dateOfExpiration(expiresAt)
-                .notificationUrl("https://854e-2804-9f8-4787-9e20-d5cd-56de-bce1-48f1.ngrok-free.app/webhook?source_news=webhooks")
+                .notificationUrl("https://pursuable-unexposed-fender.ngrok-free.dev/webhook?source_news=webhooks")
                 .payer(payerData)
                 .build();
 

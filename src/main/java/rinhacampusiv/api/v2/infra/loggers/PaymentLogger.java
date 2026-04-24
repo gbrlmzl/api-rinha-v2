@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
 @Component
 public class PaymentLogger {
 
-    private static final Logger logger = LoggerFactory.getLogger(MercadoPagoClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(PaymentLogger.class);
 
 
     //Consulta de pagamento

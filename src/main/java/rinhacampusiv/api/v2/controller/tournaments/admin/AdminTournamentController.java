@@ -29,7 +29,7 @@ public class AdminTournamentController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TournamentAdminDetailData> create(
             @RequestPart("data") @Valid TournamentCreationData tournamentData,
-            @RequestPart("image") MultipartFile image,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             UriComponentsBuilder uriBuilder) {
         TournamentAdminDetailData response = adminService.createTournament(tournamentData, image);
         var uri = uriBuilder.path("/admin/tournaments/{tournamentId}").buildAndExpand(response.id()).toUri();

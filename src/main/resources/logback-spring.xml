@@ -1,48 +1,109 @@
 <configuration>
-    <!-- Console Appender: mostra tudo no console -->
+
+    <springProfile name="dev">
+        <property name="LOG_PATH" value="C:/logs/rinhaufpb"/>
+    </springProfile>
+
+    <springProfile name="prod">
+        <property name="LOG_PATH" value="/var/logs/rinhaufpb"/>
+    </springProfile>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         Appenders
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Console com cores: nível destacado, nome do logger em ciano -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%-40.40logger{39}) : %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Appender para ImgurClient -->
-    <appender name="IMGUR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/logs/rinhaufpb/imgur/imgurclient.log</file>
+    <!-- Arquivo dedicado para e-mails -->
+    <appender name="EMAIL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/logs/rinhaufpb/email/email.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- Gera um novo arquivo por dia e comprime os antigos -->
-            <fileNamePattern>/var/logs/meuapp/imgur/imgurclient.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
-            <maxHistory>30</maxHistory> <!-- Mantém 30 dias -->
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!-- Appender para MercadoPagoClient -->
-    <appender name="MERCADOPAGO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/logs/rinhaufpb/mercadopago/mercadopagoclient.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/logs/meuapp/mercadopago/mercadopagoclient.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <fileNamePattern>/var/logs/rinhaufpb/email/email.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} : %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Root logger: manda tudo para o console -->
-    <root level="DEBUG">
+    <!-- Arquivo dedicado para uploads no Imgur -->
+    <appender name="IMGUR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/logs/rinhaufpb/imgur/imgur.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/logs/rinhaufpb/imgur/imgur.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Arquivo dedicado para pagamentos Mercado Pago -->
+    <appender name="MERCADOPAGO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/logs/rinhaufpb/mercadopago/mercadopago.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/logs/rinhaufpb/mercadopago/mercadopago.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         Supressão de ruído — frameworks e bibliotecas de terceiros
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <logger name="org.springframework"  level="WARN"/>
+    <logger name="org.hibernate"        level="WARN"/>
+    <logger name="com.zaxxer.hikari"    level="WARN"/>
+    <logger name="com.mercadopago"      level="WARN"/>
+    <logger name="org.apache"           level="WARN"/>
+    <logger name="io.netty"             level="WARN"/>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         Loggers de domínio — saem para arquivo próprio E para o console
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Pagamentos (Mercado Pago) -->
+    <logger name="rinhacampusiv.api.v2.infra.loggers.PaymentLogger" level="INFO" additivity="false">
+        <appender-ref ref="MERCADOPAGO_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- E-mail -->
+    <logger name="rinhacampusiv.api.v2.infra.loggers.EmailSenderLogger" level="INFO" additivity="false">
+        <appender-ref ref="EMAIL_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Upload de imagens — logger dedicado -->
+    <logger name="rinhacampusiv.api.v2.infra.loggers.UploadImageLogger" level="INFO" additivity="false">
+        <appender-ref ref="IMGUR_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Upload de imagens — logs internos ainda existentes no ImgurClient -->
+    <logger name="rinhacampusiv.api.v2.infra.external.ImgurClient" level="INFO" additivity="false">
+        <appender-ref ref="IMGUR_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         Root — captura todo o restante da aplicação em INFO
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <!-- Logger específico para ImgurClient -->
-    <logger name="rinhacampusiv.api.v2.infra.external.ImgurClient" level="INFO" additivity="false">
-        <appender-ref ref="IMGUR_FILE"/>
-    </logger>
-
-    <!-- Logger específico para MercadoPagoClient -->
-    <logger name="rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient" level="INFO" additivity="false">
-        <appender-ref ref="MERCADOPAGO_FILE"/>
-    </logger>
 </configuration>
