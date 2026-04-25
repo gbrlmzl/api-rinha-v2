@@ -249,18 +249,20 @@ public class TournamentRegistrationService {
 
     private TournamentRegistrationStatusData handleExistingTeam(Team team, Tournament tournament, boolean maxTeamsReached) {
         if (tournament.getStatus() == TournamentStatus.FULL || maxTeamsReached) {
-            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), tournament.getStatus(), true);
+            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), true);
             return new TournamentRegistrationStatusData(registrationData);
         }
 
         PaymentEntity payment = team.getPayments().getLast();
+
         if (tournament.getStatus() == TournamentStatus.OPEN && payment.isPending()) {
             GeneratedPaymentData generatedPaymentData = new GeneratedPaymentData(payment);
-            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), tournament.getStatus(), false);
+
+            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
             return new TournamentRegistrationStatusData(registrationData, generatedPaymentData);
         }
 
-        CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), tournament.getStatus(), false);
+        CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
         return new TournamentRegistrationStatusData(registrationData);
     }
 

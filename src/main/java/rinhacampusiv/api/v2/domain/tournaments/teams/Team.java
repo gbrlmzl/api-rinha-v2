@@ -62,6 +62,7 @@ public class Team {
 
     @BatchSize(size = 32)
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC") // ordena pela coluna created_at em ordem crescente
     private List<PaymentEntity> payments  = new ArrayList<>();
 
     public Team(TeamRegisterData data, User captain, Tournament tournament) {
@@ -120,5 +121,9 @@ public class Team {
 
     public boolean isPendingPayment() {
         return this.status == TeamStatus.PENDING_PAYMENT;
+    }
+
+    public Integer getPlayersCount(){
+        return this.players.size();
     }
 }
