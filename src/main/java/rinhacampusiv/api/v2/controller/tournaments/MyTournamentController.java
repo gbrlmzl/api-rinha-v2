@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.MyTournamentsSummaryData;
+import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.service.tournaments.MyTournamentsService;
 
 @RestController
@@ -25,9 +26,10 @@ public class MyTournamentController {
     @GetMapping
     public ResponseEntity<Page<MyTournamentsSummaryData>> getMyTournaments(
             @RequestParam TournamentGame game,
-            @PageableDefault(size = 12, sort = "startsAt", direction = Sort.Direction.ASC) Pageable pageable,
+            @PageableDefault(size = 12, sort = "tournament.startsAt", direction = Sort.Direction.ASC) Pageable pageable,
             Authentication authentication) {
-        return ResponseEntity.ok(myTournamentsService.getMyActiveTournaments(game, pageable, authentication.getName()));
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(myTournamentsService.getMyActiveTournaments(game, pageable, user.getId()));
     }
 
 

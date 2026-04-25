@@ -16,8 +16,8 @@ public class MyTournamentsService {
     private TeamRepository teamRepository;
 
     @Transactional(readOnly = true)
-    public Page<MyTournamentsSummaryData> getMyActiveTournaments(TournamentGame game, Pageable pageable, String userEmail) {
-        return teamRepository.findTeamsByUserEmailAndGame(userEmail, game, pageable)
+    public Page<MyTournamentsSummaryData> getMyActiveTournaments(TournamentGame game, Pageable pageable, Long userId) {
+        return teamRepository.findTeamsByCaptainIdAndGame(userId, game, pageable)
                 .map(team -> new MyTournamentsSummaryData(team.getTournament(), team));
     }
 }

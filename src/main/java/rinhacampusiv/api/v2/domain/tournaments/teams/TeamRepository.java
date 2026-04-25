@@ -59,9 +59,12 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     //verificar se existe equipes com o mesmo nome no mesmo torneio que não estejam canceladas
     Boolean existsByNameAndTournamentIdAndStatusNot(String name, Long tournamentId, TeamStatus status);
 
-    // Busca as equipes onde o usuário está, seja ele o capitão OU um dos jogadores
-    @Query("SELECT DISTINCT t FROM Team t LEFT JOIN t.players p WHERE (p.user.email = :email OR t.captain.email = :email) AND t.tournament.game = :game")
-    Page<Team> findTeamsByUserEmailAndGame(@Param("email") String email, @Param("game") TournamentGame game, Pageable pageable);
+    // Busca os times onde o usuário é capitão, excluindo times banidos, cancelados e finalizados.
+    // TODO: quando o fluxo de "claim" de jogador for implementado (Player.claimPlayer),
+    //  adicionar a condição: OR EXISTS (SELECT 1 FROM t.players p WHERE p.user.id = :userId)
+    //  para que jogadores não-capitães também consigam ver seus torneios.
+    @Query("SELECT t FROM Team t WHERE t.status NOT IN ('BANNED', 'CANCELED', 'FINISHED') AND t.tournament.game = :game AND t.captain.id = :userId")
+    Page<Team> findTeamsByCaptainIdAndGame(@Param("userId") Long userId, @Param("game") TournamentGame game, Pageable pageable);
 
     @Query("SELECT COUNT(t) > 0 FROM Team t LEFT JOIN t.players p " +
             "WHERE t.tournament.id = :tournamentId " +
