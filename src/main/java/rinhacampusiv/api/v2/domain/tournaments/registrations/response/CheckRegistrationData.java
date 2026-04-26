@@ -4,6 +4,7 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 
 public record CheckRegistrationData(
+        Long tournamentId,
         Boolean registered,
         TeamStatus teamStatus,
         Integer teamPlayersAmount,
@@ -11,7 +12,7 @@ public record CheckRegistrationData(
         Boolean maxTeamsReached
 ) {
 
-    public CheckRegistrationData(Boolean registered, TournamentStatus tournamentStatus, Boolean maxTeamsReached){
-        this(registered, null, null, tournamentStatus, maxTeamsReached);
+    public CheckRegistrationData(Long tournamentId, Boolean registered, TournamentStatus tournamentStatus, Boolean maxTeamsReached){
+        this(tournamentId, registered, null, null, tournamentStatus, maxTeamsReached);
     }
 }

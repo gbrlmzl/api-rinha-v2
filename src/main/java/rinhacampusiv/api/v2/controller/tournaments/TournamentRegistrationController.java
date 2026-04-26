@@ -33,7 +33,7 @@ public class TournamentRegistrationController {
             @PathVariable Long tournamentId,
             Authentication authentication
     ) {
-        CanceledTeamData updatedTeam = tournamentRegistrationService.updateTeam(tournamentId,cancelRegistration, authentication);
+        CanceledTeamData updatedTeam = tournamentRegistrationService.updateTeam(tournamentId, cancelRegistration, authentication);
         return ResponseEntity.ok(updatedTeam);
     }
 
@@ -58,13 +58,13 @@ public class TournamentRegistrationController {
         return ResponseEntity.created(uri).body(result);
     }
 
-    @GetMapping(value = "/{tournamentId}/registrations")
+    @GetMapping(value = "/{tournamentSlug}/registrations")
     public ResponseEntity<TournamentRegistrationStatusData> registrationStatus(
-            @PathVariable Long tournamentId,
+            @PathVariable String tournamentSlug,
             Authentication authentication) {
 
         var registrationStatus = tournamentRegistrationService.getRegistrationStatus(
-                tournamentId, authentication
+                tournamentSlug, authentication
         );
 
         return ResponseEntity.ok(registrationStatus);

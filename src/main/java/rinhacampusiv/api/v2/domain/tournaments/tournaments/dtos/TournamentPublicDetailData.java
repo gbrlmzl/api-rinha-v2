@@ -14,6 +14,7 @@ import java.util.List;
 
 public record TournamentPublicDetailData(
         Long id,
+        String slug,
         String name,
         String description,
         String rulesUrl,
@@ -31,6 +32,7 @@ public record TournamentPublicDetailData(
     public TournamentPublicDetailData(Tournament tournament, Integer confirmedTeamsCount, List<TeamPublicData> confirmedTeams, UserTeamStatusData userTeam){
         this(
                 tournament.getId(),
+                tournament.getSlug(),
                 tournament.getName(),
                 tournament.getDescription(),
                 tournament.getRulesUrl(),

@@ -163,7 +163,7 @@ public class TournamentRegistrationService {
             throw new IllegalStateException("Operação não permitida");
         }
 
-        Optional<Team> optionalTeam = findTeam(captain, tournamentId);
+        Optional<Team> optionalTeam = findTeam(captain, tournament.getId());
         if (optionalTeam.isEmpty()) {
             throw new TeamNotFoundException("Não foi encontrada nenhuma equipe cadastrada para cancelar!");
         }
@@ -202,14 +202,14 @@ public class TournamentRegistrationService {
         return teamRepository.existsByNameAndTournamentIdAndStatusNotIn(name, tournamentId, status);
     }
 
-    public TournamentRegistrationStatusData getRegistrationStatus(Long tournamentId, Authentication authentication) {
+    public TournamentRegistrationStatusData getRegistrationStatus(String tournamentSlug, Authentication authentication) {
         validateAuthentication(authentication);
 
         User captain = (User) authentication.getPrincipal();
-        Tournament tournament = getTournamentOrThrow(tournamentId);
+        Tournament tournament = tournamentRepository.findBySlug(tournamentSlug).orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
         validateTournamentStatus(tournament);
 
-        Optional<Team> team = findTeam(captain, tournamentId);
+        Optional<Team> team = findTeam(captain, tournament.getId());
         boolean maxTeamsReached = isMaxTeamsReached(tournament);
 
         if (team.isPresent()) {
@@ -249,7 +249,7 @@ public class TournamentRegistrationService {
 
     private TournamentRegistrationStatusData handleExistingTeam(Team team, Tournament tournament, boolean maxTeamsReached) {
         if (tournament.getStatus() == TournamentStatus.FULL || maxTeamsReached) {
-            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), true);
+            CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), true);
             return new TournamentRegistrationStatusData(registrationData);
         }
 
@@ -258,16 +258,16 @@ public class TournamentRegistrationService {
         if (tournament.getStatus() == TournamentStatus.OPEN && payment.isPending()) {
             GeneratedPaymentData generatedPaymentData = new GeneratedPaymentData(payment);
 
-            CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
+            CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
             return new TournamentRegistrationStatusData(registrationData, generatedPaymentData);
         }
 
-        CheckRegistrationData registrationData = new CheckRegistrationData(true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
+        CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
         return new TournamentRegistrationStatusData(registrationData);
     }
 
     private TournamentRegistrationStatusData handleNoTeam(Tournament tournament, boolean maxTeamsReached) {
-        CheckRegistrationData registrationData = new CheckRegistrationData(false, tournament.getStatus(), maxTeamsReached);
+        CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), false, tournament.getStatus(), maxTeamsReached);
         return new TournamentRegistrationStatusData(registrationData);
     }
 
