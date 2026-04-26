@@ -19,6 +19,7 @@ public record MyTournamentsSummaryData(
         TournamentStatus status,
         TeamStatus teamStatus,
         OffsetDateTime startsAt,
+        OffsetDateTime endsAt,
         OffsetDateTime expiresAtPayment
 ) {
 
@@ -31,6 +32,7 @@ public record MyTournamentsSummaryData(
                 tournament.getStatus(),
                 team.getStatus(),
                 tournament.getStartsAt(),
+                tournament.getEndsAt(),
                 team.getPayments().stream()
                         .filter(payment -> payment.getStatus() == PaymentStatus.PENDING)
                         .sorted(Comparator.comparing(PaymentEntity::getExpiresAt).reversed())

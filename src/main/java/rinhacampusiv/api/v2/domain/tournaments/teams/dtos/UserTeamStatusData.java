@@ -10,6 +10,7 @@ public record UserTeamStatusData(
         TeamStatus teamStatus,
         String teamName,
         String teamShieldUrl,
+        String captainNickname,
         List<PlayerPublicData> players
 
 ) { public UserTeamStatusData(Team team){
@@ -17,6 +18,7 @@ public record UserTeamStatusData(
             team.getStatus(),
             team.getName(),
             team.getShieldUrl(),
+            team.getCaptain() != null ? team.getCaptain().getNickname() : null,
             team.getPlayers().stream()
                     .map(player -> new PlayerPublicData(player.getNickname(), player.getRole()))
                     .toList()

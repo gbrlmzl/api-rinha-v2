@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TournamentRepository extends JpaRepository<Tournament, Long> {
 
@@ -15,4 +16,6 @@ public interface TournamentRepository extends JpaRepository<Tournament, Long> {
     Page<Tournament> findByGameAndStatusIn(TournamentGame game, List<TournamentStatus> listStatus, Pageable pageable);
 
     boolean existsByNameAndGameAndIdNot(String name, TournamentGame game, Long id);
+
+    Optional<Tournament> findBySlug(String slug);
 }

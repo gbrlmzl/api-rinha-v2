@@ -35,7 +35,7 @@ public class PublicTournamentController {
         return ResponseEntity.ok(publicService.listByGameAndStatusIn(game, status, pageable));
     }
 
-    // Detalhe público
+    // Detalhe público por ID
     @GetMapping("/{id}")
     public ResponseEntity<TournamentPublicDetailData> getTournament(
             @PathVariable Long id,
@@ -43,6 +43,16 @@ public class PublicTournamentController {
     ) {
         Long userId = authentication != null ? ((User) authentication.getPrincipal()).getId() : null;
         return ResponseEntity.ok(publicService.getPublicTournamentView(id, userId));
+    }
+
+    // Detalhe público por slug
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<TournamentPublicDetailData> getTournamentBySlug(
+            @PathVariable String slug,
+            Authentication authentication
+    ) {
+        Long userId = authentication != null ? ((User) authentication.getPrincipal()).getId() : null;
+        return ResponseEntity.ok(publicService.getPublicTournamentViewBySlug(slug, userId));
     }
 
 }

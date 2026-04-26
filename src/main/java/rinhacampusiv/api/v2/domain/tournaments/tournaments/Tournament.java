@@ -10,6 +10,7 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -56,6 +57,28 @@ public class Tournament {
 
     @Column(name = "rules_url")
     private String rulesUrl;
+
+    @Column(unique = true)
+    private String slug;
+
+    @PrePersist
+    @PreUpdate
+    private void generateSlug() {
+        if (this.name != null) this.slug = toSlug(this.name);
+    }
+
+    public static String toSlug(String text) {
+        if (text == null) return null;
+        // NFD decompõe caracteres compostos:  ç → c + cedilha,  ã → a + til,  é → e + acento, etc.
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
+        return normalized
+                .replaceAll("\\p{M}", "")   // remove TODAS as marcas de combinação (acentos, cedilha, til…)
+                .toLowerCase()
+                .replaceAll("[^a-z0-9\\s]", "")  // remove tudo que não é letra, número ou espaço
+                .trim()
+                .replaceAll("\\s+", "-")   // espaços → hífens
+                .replaceAll("-+", "-");    // hífens duplos → um único
+    }
 
     public Tournament(@Valid TournamentCreationData tournamentDto) {
         this.name = tournamentDto.name();

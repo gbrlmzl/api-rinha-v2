@@ -59,6 +59,31 @@ public class PublicTournamentService {
         }
 
         @Transactional(readOnly = true)
+        public TournamentPublicDetailData getPublicTournamentViewBySlug(String slug, Long userId) {
+            Tournament tournament = tournamentRepository.findBySlug(slug)
+                    .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
+
+            if (tournament.getStatus() == TournamentStatus.CANCELED)
+                throw new EntityNotFoundException("Torneio não disponível");
+
+            Long id = tournament.getId();
+            List<Team> readyTeams = teamRepository.findReadyTeamsWithDetails(id);
+
+            List<TeamPublicData> confirmedTeams = readyTeams.stream()
+                    .map(TeamPublicData::new)
+                    .toList();
+
+            UserTeamStatusData userTeam = null;
+            if (userId != null)
+                userTeam = teamRepository
+                        .findByCaptainIdAndTournamentIdAndStatusNot(userId, id, TeamStatus.CANCELED)
+                        .map(UserTeamStatusData::new)
+                        .orElse(null);
+
+            return new TournamentPublicDetailData(tournament, readyTeams.size(), confirmedTeams, userTeam);
+        }
+
+        @Transactional(readOnly = true)
         public Page<TournamentPublicSummaryData> listByGameAndStatusIn(TournamentGame game, List<TournamentStatus> statuses, Pageable pageable) {
             Page<Tournament> page = tournamentRepository.findByGameAndStatusIn(game, statuses, pageable);
             List<Long> ids = page.map(Tournament::getId).toList();

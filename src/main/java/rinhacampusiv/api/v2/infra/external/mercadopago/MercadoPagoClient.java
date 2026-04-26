@@ -111,14 +111,14 @@ public class MercadoPagoClient {
                                 .build())
                 .build();
 
-        OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(6);
+        OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(120);
 
         PaymentCreateRequest paymentData = PaymentCreateRequest.builder()
                 .transactionAmount(value)
                 .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
                 .dateOfExpiration(expiresAt)
-                .notificationUrl("https://0c41-2804-9f8-478a-b8b0-d5cd-56de-bce1-48f1.ngrok-free.app/webhook?source_news=webhooks")
+                    .notificationUrl("https://pursuable-unexposed-fender.ngrok-free.dev/webhook?source_news=webhooks")
                 .payer(payerData)
                 .build();
 
