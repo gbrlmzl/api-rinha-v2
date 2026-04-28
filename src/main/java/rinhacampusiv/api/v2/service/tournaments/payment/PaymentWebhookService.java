@@ -23,7 +23,7 @@ public class PaymentWebhookService {
     private MercadoPagoClient mercadoPagoClient;
 
     @Autowired
-    private PaymentConfirmationService paymentConfirmationService;
+    private PaymentUpdateService paymentUpdateService;
 
     @Autowired
     private PaymentEventRepository eventRepository;
@@ -64,7 +64,7 @@ public class PaymentWebhookService {
         }
 
         try {
-            paymentConfirmationService.verifyPayment(mpPayment);
+            paymentUpdateService.verifyPayment(mpPayment);
             eventRepository.save(new PaymentEvent(paymentEntity, PaymentEventType.PROCESSED,
                     MercadoPagoEventData.processed(paymentId, statusFromMp, statusDetailFromMp)));
         } catch (Exception e) {

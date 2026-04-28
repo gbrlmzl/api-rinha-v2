@@ -82,7 +82,7 @@ public class TournamentRegistrationService {
         if (registrationData.teamData() == null && registrationData.paymentData() != null) {
             log.info("[REGISTRO] Tentativa de re-inscrição | torneio={} | capitão={}",
                     tournament.getName(), captain.getUsername());
-            return retryRegisterTeam(tournament, captain, registrationData.paymentData(), authentication);
+            return retryRegisterTeam(tournament, captain, registrationData.paymentData());
         }
 
         log.info("[REGISTRO] Iniciando inscrição de equipe | torneio={} | equipe={} | capitão={}",
@@ -109,11 +109,8 @@ public class TournamentRegistrationService {
         return result;
     }
 
-    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain,
-                                                   PaymentRegistrationDataMercadoPago paymentData,
-                                                   Authentication authentication) {
-        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(
-                captain.getId(), tournament.getId(), TeamStatus.CANCELED);
+    private GeneratedPaymentData retryRegisterTeam(Tournament tournament, User captain, PaymentRegistrationDataMercadoPago paymentData) {
+        Optional<Team> team = teamRepository.findByCaptainIdAndTournamentIdAndStatusNot(captain.getId(), tournament.getId(), TeamStatus.CANCELED);
 
         if (team.isEmpty()) {
             throw new RuntimeException("Não existe equipe cadastrada para retry");
@@ -152,7 +149,7 @@ public class TournamentRegistrationService {
         return new PaymentEntity(generatedPayment, payerName);
     }
 
-    public CanceledTeamData updateTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication) {
+    public CanceledTeamData cancelTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication) {
         validateAuthentication(authentication);
 
         User captain = (User) authentication.getPrincipal();

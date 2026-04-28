@@ -17,9 +17,9 @@ import rinhacampusiv.api.v2.service.email.EmailService;
 import java.util.Map;
 
 @Service
-public class PaymentConfirmationService {
+public class PaymentUpdateService {
 
-    private static final Logger log = LoggerFactory.getLogger(PaymentConfirmationService.class);
+    private static final Logger log = LoggerFactory.getLogger(PaymentUpdateService.class);
 
     @Autowired
     private SimpMessagingTemplate messageSender;
@@ -35,6 +35,7 @@ public class PaymentConfirmationService {
 
     public void verifyPayment(Payment paymentData) {
         String mercadoPagoPaymentId = String.valueOf(paymentData.getId());
+
         PaymentEntity payment = paymentRepository
                 .findByMercadoPagoId(mercadoPagoPaymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Pagamento não encontrado"));

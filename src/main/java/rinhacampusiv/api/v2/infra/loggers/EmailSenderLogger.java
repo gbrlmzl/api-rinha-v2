@@ -74,14 +74,5 @@ public class EmailSenderLogger {
     }
 
 
-    // ─── Utilitário ────────────────────────────────────────────────────────────
 
-//    private String maskEmail(String email) {
-//        if (email == null || !email.contains("@")) return "***";
-//        int atIndex = email.indexOf('@');
-//        String local = email.substring(0, atIndex);
-//        String domain = email.substring(atIndex);
-//        if (local.length() <= 2) return "**" + domain;
-//        return local.charAt(0) + "*".repeat(local.length() - 2) + local.charAt(local.length() - 1) + domain;
-//    }
 }

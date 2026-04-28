@@ -35,7 +35,7 @@ public class TournamentRegistrationController {
             @PathVariable Long tournamentId,
             Authentication authentication
     ) {
-        CanceledTeamData updatedTeam = tournamentRegistrationService.updateTeam(tournamentId, cancelRegistration, authentication);
+        CanceledTeamData updatedTeam = tournamentRegistrationService.cancelTeam(tournamentId, cancelRegistration, authentication);
         return ResponseEntity.ok(updatedTeam);
     }
 

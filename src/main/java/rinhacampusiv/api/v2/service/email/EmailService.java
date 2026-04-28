@@ -14,110 +14,112 @@ import rinhacampusiv.api.v2.infra.exception.tournaments.SendEmailException;
 import rinhacampusiv.api.v2.infra.loggers.EmailSenderLogger;
 
 import java.time.format.DateTimeFormatter;
+import java.util.function.BiConsumer;
+import java.util.function.LongConsumer;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    @Autowired
-    private EmailTemplateService templateService;
+    @Autowired private JavaMailSender mailSender;
+    @Autowired private EmailTemplateService templateService;
+    @Autowired private EmailSenderLogger emailLogger;
 
-    @Autowired
-    private EmailSenderLogger emailLogger;
+    @Value("${spring.mail.username}") private String fromEmail;
+    @Value("${app.frontend.url}")     private String frontendUrl;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
-
-    @Value("${app.frontend.url}")
-    private String frontendUrl;
+    // ── Casos de uso ──────────────────────────────────────────────────────────
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String username, String token) {
-        emailLogger.sendingPasswordResetEmailLog(toEmail, username);
-        long start = System.currentTimeMillis();
+        String resetLink = frontendUrl + "/nova-senha?token=" + token;
+        String html      = templateService.buildResetPasswordTemplate(username, resetLink);
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            String resetLink = frontendUrl + "/nova-senha?token=" + token;
-            String html = templateService.buildResetPasswordTemplate(username, resetLink);
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Rinha Campus IV — Recuperação de senha");
-            helper.setText(html, true);
-
-            mailSender.send(message);
-            emailLogger.passwordResetEmailSentLog(toEmail, username, System.currentTimeMillis() - start);
-
-        } catch (MessagingException e) {
-            emailLogger.passwordResetEmailErrorLog(toEmail, username, e, System.currentTimeMillis() - start);
-            throw new SendEmailException(e.getMessage());
-        }
+        send(new EmailRequest(
+                toEmail,
+                "Rinha da UFPB — Recuperação de senha",
+                html,
+                () -> emailLogger.sendingPasswordResetEmailLog(toEmail, username),
+                elapsed -> emailLogger.passwordResetEmailSentLog(toEmail, username, elapsed),
+                (e, elapsed) -> emailLogger.passwordResetEmailErrorLog(toEmail, username, e, elapsed)
+        ));
     }
 
     @Async
     public void sendAccountConfirmationEmail(String toEmail, String username, String token) {
-        emailLogger.sendingAccountConfirmationEmailLog(toEmail, username);
-        long start = System.currentTimeMillis();
+        String confirmationLink = frontendUrl + "/ativar-conta?token=" + token;
+        String html             = templateService.buildAccountActivationTemplate(username, confirmationLink);
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            String confirmationLink = frontendUrl + "/ativar-conta?token=" + token;
-            String html = templateService.buildAccountActivationTemplate(username, confirmationLink);
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Rinha Campus IV — Ative sua conta");
-            helper.setText(html, true);
-
-            mailSender.send(message);
-            emailLogger.accountConfirmationEmailSentLog(toEmail, username, System.currentTimeMillis() - start);
-
-        } catch (MessagingException e) {
-            emailLogger.accountConfirmationEmailErrorLog(toEmail, username, e, System.currentTimeMillis() - start);
-            throw new SendEmailException(e.getMessage());
-        }
+        send(new EmailRequest(
+                toEmail,
+                "Rinha da UFPB — Ative sua conta",
+                html,
+                () -> emailLogger.sendingAccountConfirmationEmailLog(toEmail, username),
+                elapsed -> emailLogger.accountConfirmationEmailSentLog(toEmail, username, elapsed),
+                (e, elapsed) -> emailLogger.accountConfirmationEmailErrorLog(toEmail, username, e, elapsed)
+        ));
     }
-
 
     @Async
-    public void sendPaymentConfirmationEmail(Team paymentTeam) {
-        emailLogger.sendingPaymentConfirmationEmailLog(paymentTeam);
+    public void sendPaymentConfirmationEmail(Team team) {
+        var info = new PaymentConfirmationInfo(
+                team.getName(),
+                team.getShieldUrl(),
+                team.getTournament().getName(),
+                team.getTournament().getStartsAt().format(DATE_FORMAT)
+        );
+        String html = templateService.buildPaymentConfirmationTemplate(info);
+
+        send(new EmailRequest(
+                team.getCaptain().getEmail(),
+                "Rinha da UFPB — Inscrição confirmada",
+                html,
+                () -> emailLogger.sendingPaymentConfirmationEmailLog(team),
+                elapsed -> emailLogger.paymentConfirmationEmailSentLog(team, elapsed),
+                (e, elapsed) -> emailLogger.paymentConfirmationEmailErrorLog(team, e, elapsed)
+        ));
+    }
+
+    // ── Infraestrutura de envio ───────────────────────────────────────────────
+
+    /**
+     * Executa o envio de um e-mail, medindo tempo e delegando logs ao chamador.
+     * Toda a duplicação de MimeMessage, MimeMessageHelper e tratamento de erro
+     * fica aqui — os métodos públicos só lidam com conteúdo.
+     */
+    private void send(EmailRequest request) {
+        request.onStart().run();
         long start = System.currentTimeMillis();
 
         try {
-            var dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            String toEmail = paymentTeam.getCaptain().getEmail();
-
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            var paymentConfirmationInfo = new PaymentConfirmationInfo(
-                    paymentTeam.getName(),
-                    paymentTeam.getShieldUrl(),
-                    paymentTeam.getTournament().getName(),
-                    paymentTeam.getTournament().getStartsAt().format(dateFormat)
-            );
-
-            String html = templateService.buildPaymentConfirmationTemplate(paymentConfirmationInfo);
-
             helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Rinha Campus IV — Inscrição confirmada");
-            helper.setText(html, true);
+            helper.setTo(request.to());
+            helper.setSubject(request.subject());
+            helper.setText(request.html(), true);
 
             mailSender.send(message);
-            emailLogger.paymentConfirmationEmailSentLog(paymentTeam, System.currentTimeMillis() - start);
+            request.onSuccess().accept(System.currentTimeMillis() - start);
 
         } catch (MessagingException e) {
-            emailLogger.paymentConfirmationEmailErrorLog(paymentTeam, e, System.currentTimeMillis() - start);
+            request.onError().accept(e, System.currentTimeMillis() - start);
             throw new SendEmailException(e.getMessage());
         }
     }
+
+    /**
+     * Agrupa os dados e callbacks de um envio de e-mail.
+     *
+     */
+    private record EmailRequest(
+            String to,
+            String subject,
+            String html,
+            Runnable onStart,
+            LongConsumer onSuccess,
+            BiConsumer<MessagingException, Long> onError
+    ) {}
 }
