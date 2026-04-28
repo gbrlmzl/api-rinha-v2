@@ -3,83 +3,74 @@ package rinhacampusiv.api.v2.service.authentication;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseCookie;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.auth.GeneratedAuthCookies;
 import rinhacampusiv.api.v2.domain.auth.LoginData;
 import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.infra.exception.users.AccountNotActivatedException;
 import rinhacampusiv.api.v2.infra.exception.auth.RefreshTokenNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.users.AccountNotActivatedException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.util.Arrays;
-
 
 @Service
 public class UserAuthService {
 
+    private static final String REFRESH_COOKIE_NAME = "REFRESH";
 
-    @Autowired
-    private TokenService tokenService;
+    @Autowired private TokenService tokenService;
+    @Autowired private CookieService cookieService;
+    @Autowired private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private CookieService cookieService;
-
-    @Autowired
-    private AuthenticationManager manager;
-
+    // ── Casos de uso ──────────────────────────────────────────────────────────
 
     public GeneratedAuthCookies login(LoginData data) {
-
-        var authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
-        var authentication = manager.authenticate(authenticationToken);
-
-        User user = (User) authentication.getPrincipal();
+        User user = authenticate(data);
 
         if (!user.isActive()) {
             throw new AccountNotActivatedException();
         }
 
-        var accessToken = tokenService.generateToken(user);
-        var refreshToken = tokenService.generateRefreshToken(user);
+        String accessToken  = tokenService.generateToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
 
-
-        GeneratedAuthCookies authTokensCookies = cookieService.generateCookies(accessToken, refreshToken, data.keepLoggedIn());
-
-        return authTokensCookies;
-
+        return cookieService.generateCookies(accessToken, refreshToken, data.keepLoggedIn());
     }
 
     public GeneratedAuthCookies logout() {
-
-        GeneratedAuthCookies cleanCookies = cookieService.generateCleanCookies();
-        return cleanCookies;
+        return cookieService.generateCleanCookies();
     }
 
     public String refresh(HttpServletRequest request) {
-        String refreshToken = Arrays.stream(request.getCookies())
-                .filter(c -> "REFRESH".equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElseThrow(() -> new RefreshTokenNotFoundException("Refresh token não encontrado"));
+        String refreshToken = extractRefreshToken(request);
 
-        String subject = tokenService.getSubjectFromRefreshToken(refreshToken);
-        String username = tokenService.getClaimUsernameFromRefreshToken(refreshToken);
-
+        String subject  = tokenService.getSubjectFromRefreshToken(refreshToken);
+        String username = tokenService.getUsernameFromRefreshToken(refreshToken);
 
         String newAccessToken = tokenService.generateToken(subject, username);
 
-        ResponseCookie newAccessCookie = ResponseCookie.from("JWT", newAccessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(15 * 60) //15 minutos
-                .sameSite("Lax")
-                .build();
-
-        return newAccessCookie.toString();
+        return cookieService.buildAccessCookie(newAccessToken);
     }
 
+    // ── Helpers privados ──────────────────────────────────────────────────────
 
+    private User authenticate(LoginData data) {
+        var authToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
+        return (User) authenticationManager.authenticate(authToken).getPrincipal();
+    }
+
+    private String extractRefreshToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            throw new RefreshTokenNotFoundException("Refresh token não encontrado");
+        }
+
+        return Arrays.stream(cookies)
+                .filter(c -> REFRESH_COOKIE_NAME.equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElseThrow(() -> new RefreshTokenNotFoundException("Refresh token não encontrado"));
+    }
 }

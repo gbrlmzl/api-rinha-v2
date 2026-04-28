@@ -85,7 +85,7 @@ public class EmailService {
         }
     }
 
-    //TODO
+
     @Async
     public void sendPaymentConfirmationEmail(Team paymentTeam) {
         emailLogger.sendingPaymentConfirmationEmailLog(paymentTeam);

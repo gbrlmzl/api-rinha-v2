@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.user.User;
@@ -16,150 +17,117 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
+    // ── Constantes ────────────────────────────────────────────────────────────
+
+    private static final String ISSUER        = "API Rinha.v2";
+    private static final String CLAIM_TYPE     = "type";
+    private static final String CLAIM_USERNAME = "username";
+    private static final String TYPE_ACCESS    = "access";
+    private static final String TYPE_REFRESH   = "refresh";
+
+    private static final ZoneOffset ZONE_OFFSET = ZoneOffset.of("-03:00");
+    private static final int ACCESS_TOKEN_EXPIRY_HOURS  = 2;
+    private static final int REFRESH_TOKEN_EXPIRY_DAYS  = 7;
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String generateToken(User usuario) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            String token = JWT.create()
-                    .withIssuer("API Rinha.v2")
-                    .withSubject(String.valueOf(usuario.getId()))
-                    .withClaim("username", usuario.getUsername())
-                    .withClaim("type", "access")
-                    .withExpiresAt(dataExpiracao())
-                    .sign(algorithm);
+    // ── Geração ───────────────────────────────────────────────────────────────
 
-            return token;
-        } catch (JWTCreationException exception){
-            // Invalid Signing configuration / Couldn't convert Claims.
-            throw new RuntimeException("Erro ao gerar token jwt", exception);
-        }
+    public String generateToken(User user) {
+        return generateToken(String.valueOf(user.getId()), user.getUsername());
     }
 
-    public String generateToken(String userIdSubject, String usernameClaim){
+    public String generateToken(String userIdSubject, String usernameClaim) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            String token = JWT.create()
-                    .withIssuer("API Rinha.v2")
-                    .withSubject(userIdSubject)
-                    .withClaim("username", usernameClaim)
-                    .withClaim("type", "access")
-                    .withExpiresAt(dataExpiracao())
-                    .sign(algorithm);
-
-            return token;
-        } catch (JWTCreationException exception){
-            // Invalid Signing configuration / Couldn't convert Claims.
-            throw new RuntimeException("Erro ao gerar token jwt", exception);
-        }
-
-    }
-
-
-    public String generateRefreshToken(User usuario) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-
             return JWT.create()
-                    .withIssuer("API Rinha.v2")
-                    .withSubject(String.valueOf(usuario.getId()))
-                    .withClaim("type", "refresh") // <- importante
-                    .withClaim("username", usuario.getUsername())
-                    .withExpiresAt(dataExpiracaoRefresh())
-                    .sign(algorithm);
-
-        } catch (JWTCreationException exception) {
-            throw new RuntimeException("Erro ao gerar refresh token", exception);
+                    .withIssuer(ISSUER)
+                    .withSubject(userIdSubject)
+                    .withClaim(CLAIM_USERNAME, usernameClaim)
+                    .withClaim(CLAIM_TYPE, TYPE_ACCESS)
+                    .withExpiresAt(accessTokenExpiry())
+                    .sign(algorithm());
+        } catch (JWTCreationException e) {
+            throw new RuntimeException("Erro ao gerar access token", e);
         }
     }
 
-
-    public String getSubject(String tokenJWT){
+    public String generateRefreshToken(User user) {
         try {
-            var algorithm = Algorithm.HMAC256(secret);
-
-            var decoded =  JWT.require(algorithm)
-                    // specify any specific claim validations
-                    .withIssuer("API Rinha.v2")
-                    .withClaim("type", "access")
-                    // reusable verifier instance
-                    .build()
-                    .verify(tokenJWT);
-
-
-            return decoded.getSubject();
-
-        } catch (JWTVerificationException exception){
-            // Invalid signature/claims
-            throw new RuntimeException("Token JWT inválido ou expirado!");
+            return JWT.create()
+                    .withIssuer(ISSUER)
+                    .withSubject(String.valueOf(user.getId()))
+                    .withClaim(CLAIM_USERNAME, user.getUsername())
+                    .withClaim(CLAIM_TYPE, TYPE_REFRESH)
+                    .withExpiresAt(refreshTokenExpiry())
+                    .sign(algorithm());
+        } catch (JWTCreationException e) {
+            throw new RuntimeException("Erro ao gerar refresh token", e);
         }
-
     }
 
+    // ── Verificação ───────────────────────────────────────────────────────────
 
+    public String getSubject(String accessToken) {
+        return verifyAndDecode(accessToken, TYPE_ACCESS).getSubject();
+    }
 
     public String getSubjectFromRefreshToken(String refreshToken) {
-        try {
-            var algorithm = Algorithm.HMAC256(secret);
-
-            var decoded = JWT.require(algorithm)
-                    .withIssuer("API Rinha.v2")
-                    .withClaim("type", "refresh") // <- garante que é refresh
-                    .build()
-                    .verify(refreshToken);
-
-
-            return decoded.getSubject();
-
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Refresh token inválido ou expirado!");
-        }
+        return verifyAndDecode(refreshToken, TYPE_REFRESH).getSubject();
     }
 
-    public String getClaimUsernameFromRefreshToken(String refreshToken) {
-        try {
-            var algorithm = Algorithm.HMAC256(secret);
-
-            var decoded = JWT.require(algorithm)
-                    .withIssuer("API Rinha.v2")
-                    .withClaim("type", "refresh") // <- garante que é refresh
-                    .build()
-                    .verify(refreshToken);
-
-
-            return decoded.getClaim("username").asString();
-
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Refresh token inválido ou expirado!");
-        }
-
-
+    public String getUsernameFromRefreshToken(String refreshToken) {
+        return verifyAndDecode(refreshToken, TYPE_REFRESH)
+                .getClaim(CLAIM_USERNAME)
+                .asString();
     }
 
-    // Retorna true se o token existir mas estiver expirado
+    /** Retorna true se o token estiver expirado (assinatura válida, mas fora do prazo). */
     public boolean isExpired(String token) {
-        var algorithm = Algorithm.HMAC256(secret);
-
         try {
-            JWT.require(algorithm).build().verify(token);
-            return false; // válido
+            JWT.require(algorithm()).build().verify(token);
+            return false;
         } catch (TokenExpiredException e) {
-            return true;  // expirado — vale tentar refresh
+            return true;
         } catch (Exception e) {
-            return false; // inválido por outro motivo
+            return false;
         }
     }
 
-    private Instant dataExpiracao() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    // ── Helpers privados ──────────────────────────────────────────────────────
+
+    /**
+     * Verifica assinatura, issuer e type claim em uma única chamada.
+     * Lança RuntimeException padronizada para qualquer falha de verificação.
+     */
+    private DecodedJWT verifyAndDecode(String token, String expectedType) {
+        try {
+            return JWT.require(algorithm())
+                    .withIssuer(ISSUER)
+                    .withClaim(CLAIM_TYPE, expectedType)
+                    .build()
+                    .verify(token);
+        } catch (JWTVerificationException e) {
+            throw new RuntimeException(
+                    "Token inválido ou expirado [type=%s]".formatted(expectedType), e);
+        }
     }
 
-    private Instant dataExpiracaoRefresh() {
+    private Algorithm algorithm() {
+        return Algorithm.HMAC256(secret);
+    }
+
+    private Instant accessTokenExpiry() {
         return LocalDateTime.now()
-                .plusDays(7) // 👈 refresh dura mais
-                .toInstant(ZoneOffset.of("-03:00"));
+                .plusHours(ACCESS_TOKEN_EXPIRY_HOURS)
+                .toInstant(ZONE_OFFSET);
     }
 
-
+    private Instant refreshTokenExpiry() {
+        return LocalDateTime.now()
+                .plusDays(REFRESH_TOKEN_EXPIRY_DAYS)
+                .toInstant(ZONE_OFFSET);
+    }
 }
