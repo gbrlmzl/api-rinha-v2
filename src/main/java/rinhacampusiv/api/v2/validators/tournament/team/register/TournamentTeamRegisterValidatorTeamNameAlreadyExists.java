@@ -6,7 +6,7 @@ import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentR
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
-import rinhacampusiv.api.v2.infra.exception.ValidatorException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
 
 @Component
 public class TournamentTeamRegisterValidatorTeamNameAlreadyExists implements TournamentTeamRegisterValidator {

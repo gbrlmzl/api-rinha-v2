@@ -13,10 +13,10 @@ import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserDataUpdateDTO;
 import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
-import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
-import rinhacampusiv.api.v2.infra.exception.user.InvalidCurrentPasswordException;
-import rinhacampusiv.api.v2.infra.external.ImgurClient;
-import rinhacampusiv.api.v2.infra.security.TokenService;
+import rinhacampusiv.api.v2.infra.exception.auth.UserNotAuthenticatedException;
+import rinhacampusiv.api.v2.infra.exception.users.InvalidCurrentPasswordException;
+import rinhacampusiv.api.v2.infra.external.imgur.ImgurClient;
+import rinhacampusiv.api.v2.service.authentication.TokenService;
 
 import java.util.Arrays;
 import java.util.Optional;

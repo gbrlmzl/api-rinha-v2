@@ -14,8 +14,8 @@ import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
-import rinhacampusiv.api.v2.infra.exception.TeamNotFoundException;
-import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TeamNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
 import rinhacampusiv.api.v2.service.tournaments.payment.PaymentCancellationService;
 import rinhacampusiv.api.v2.validators.tournament.team.ban.TournamentTeamBanValidator;
 

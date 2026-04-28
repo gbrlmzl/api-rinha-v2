@@ -1,7 +1,7 @@
 package rinhacampusiv.api.v2.domain.tournaments.registrations.response;
 
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
-import rinhacampusiv.api.v2.utils.QrCodeUtil;
+import rinhacampusiv.api.v2.utils.payments.QrCodeUtil;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;

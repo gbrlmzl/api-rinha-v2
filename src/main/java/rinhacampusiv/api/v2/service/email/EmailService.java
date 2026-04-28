@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.response.PaymentConfirmationInfo;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
-import rinhacampusiv.api.v2.infra.exception.SendEmailException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.SendEmailException;
 import rinhacampusiv.api.v2.infra.loggers.EmailSenderLogger;
 
 import java.time.format.DateTimeFormatter;

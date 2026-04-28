@@ -2,7 +2,7 @@ package rinhacampusiv.api.v2.service.authentication;
 
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
-import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
+import rinhacampusiv.api.v2.domain.auth.GeneratedAuthCookies;
 
 @Service
 public class CookieService {

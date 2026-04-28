@@ -19,9 +19,9 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
-import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
-import rinhacampusiv.api.v2.infra.exception.ValidatorException;
-import rinhacampusiv.api.v2.infra.external.ImgurClient;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
+import rinhacampusiv.api.v2.infra.external.imgur.ImgurClient;
 import rinhacampusiv.api.v2.service.tournaments.payment.PaymentCancellationService;
 import rinhacampusiv.api.v2.validators.tournament.creation.TournamentCreationValidator;
 import rinhacampusiv.api.v2.validators.tournament.update.TournamentUpdateValidator;

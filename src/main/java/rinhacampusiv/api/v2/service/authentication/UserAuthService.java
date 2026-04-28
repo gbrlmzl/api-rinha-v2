@@ -7,12 +7,11 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
-import rinhacampusiv.api.v2.domain.user.LoginData;
+import rinhacampusiv.api.v2.domain.auth.GeneratedAuthCookies;
+import rinhacampusiv.api.v2.domain.auth.LoginData;
 import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.infra.exception.AccountNotActivatedException;
-import rinhacampusiv.api.v2.infra.exception.RefreshTokenNotFoundException;
-import rinhacampusiv.api.v2.infra.security.TokenService;
+import rinhacampusiv.api.v2.infra.exception.users.AccountNotActivatedException;
+import rinhacampusiv.api.v2.infra.exception.auth.RefreshTokenNotFoundException;
 
 import java.util.Arrays;
 

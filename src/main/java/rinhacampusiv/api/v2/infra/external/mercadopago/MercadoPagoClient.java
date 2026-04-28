@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
-import rinhacampusiv.api.v2.infra.exception.MercadoPagoPaymentException;
+import rinhacampusiv.api.v2.infra.exception.payments.MercadoPagoPaymentException;
 import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 import rinhacampusiv.api.v2.infra.loggers.PaymentLogger;
 

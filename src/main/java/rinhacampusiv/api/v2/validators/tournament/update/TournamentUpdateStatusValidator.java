@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
-import rinhacampusiv.api.v2.infra.exception.ValidatorException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
 
 @Component
 public class TournamentUpdateStatusValidator implements TournamentUpdateValidator {

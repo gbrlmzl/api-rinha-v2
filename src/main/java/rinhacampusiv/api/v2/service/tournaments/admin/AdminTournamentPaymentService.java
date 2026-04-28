@@ -12,8 +12,8 @@ import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.*;
 import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
-import rinhacampusiv.api.v2.infra.exception.TeamNotFoundException;
-import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TeamNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
 
 import java.util.List;
 import java.util.Map;

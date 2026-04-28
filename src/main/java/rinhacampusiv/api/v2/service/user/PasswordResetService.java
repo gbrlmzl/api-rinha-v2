@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rinhacampusiv.api.v2.domain.passwordReset.PasswordResetToken;
-import rinhacampusiv.api.v2.domain.passwordReset.PasswordResetTokenRepository;
+import rinhacampusiv.api.v2.domain.auth.passwordReset.PasswordResetToken;
+import rinhacampusiv.api.v2.domain.auth.passwordReset.PasswordResetTokenRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
-import rinhacampusiv.api.v2.infra.exception.InvalidTokenException;
+import rinhacampusiv.api.v2.infra.exception.auth.InvalidTokenException;
 import rinhacampusiv.api.v2.service.email.EmailService;
 
 @Service
@@ -50,10 +50,11 @@ public class PasswordResetService {
     }
 
     // ─── Etapa 2: validar token (para o frontend verificar antes de mostrar o form) ──
-    public boolean validateToken(String token) {
-        return tokenRepository.findByToken(token)
-                .map(PasswordResetToken::isValid)
-                .orElse(false);
+    public void validateToken(String token) {
+        boolean valid =  tokenRepository.findByToken(token).map(PasswordResetToken::isValid).orElse(false);
+        if(!valid){
+            throw new InvalidTokenException("Token inválido ou expirado");
+        }
     }
 
     // ─── Etapa 3: redefinir senha ──────────────────────────────────────────────

@@ -28,6 +28,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findByCaptainIdAndTournamentId(Long captainId, Long tournamentId);
 
     Boolean existsByNameIgnoreCaseAndTournamentId(String name, Long tournamentId);
+
     // Busca equipe com pagamentos já carregados — evita N+1 no fluxo de pagamento
     @Query("SELECT t FROM Team t LEFT JOIN FETCH t.payments WHERE t.id = :id")
     Optional<Team> findByIdWithPayments(@Param("id") Long id);
@@ -70,6 +71,19 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
             "WHERE t.tournament.id = :tournamentId " +
             "AND (t.captain.email = :email OR p.user.email = :email)")
     boolean existsByTournamentIdAndUserEmail(@Param("tournamentId") Long tournamentId, @Param("email") String email);
+
+    @Query("""
+                SELECT COUNT(t) > 0
+                FROM Team t
+                WHERE LOWER(t.name) = LOWER(:name)
+                AND t.tournament.id = :tournamentId
+                AND t.status NOT IN :excludedStatuses
+            """)
+    Boolean existsByNameIgnoreCaseAndTournamentIdAndStatusNotIn(
+            @Param("name") String name,
+            @Param("tournamentId") Long tournamentId,
+            @Param("excludedStatuses") List<TeamStatus> excludedStatuses
+    );
 
     Page<Team> findByTournamentId(Long tournamentId, Pageable pageable);
 

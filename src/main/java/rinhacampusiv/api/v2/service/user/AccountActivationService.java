@@ -3,11 +3,11 @@ package rinhacampusiv.api.v2.service.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rinhacampusiv.api.v2.domain.activation.AccountActivationToken;
-import rinhacampusiv.api.v2.domain.activation.AccountActivationTokenRepository;
+import rinhacampusiv.api.v2.domain.auth.activation.AccountActivationToken;
+import rinhacampusiv.api.v2.domain.auth.activation.AccountActivationTokenRepository;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
-import rinhacampusiv.api.v2.infra.exception.InvalidTokenException;
+import rinhacampusiv.api.v2.infra.exception.auth.InvalidTokenException;
 import rinhacampusiv.api.v2.service.email.EmailService;
 
 @Service
@@ -22,10 +22,13 @@ public class AccountActivationService {
     @Autowired
     private EmailService emailService;
 
-    public boolean validateToken(String token) {
-        return tokenRepository.findByToken(token)
+    public void validateToken(String token) {
+        boolean isValid =  tokenRepository.findByToken(token)
                 .map(AccountActivationToken::isValid)
                 .orElse(false);
+        if (!isValid) {
+            throw new InvalidTokenException("Token inválido ou expirado");
+        }
     }
 
     @Transactional

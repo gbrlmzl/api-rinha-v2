@@ -97,7 +97,7 @@
     </logger>
 
     <!-- Upload de imagens — logs internos ainda existentes no ImgurClient -->
-    <logger name="rinhacampusiv.api.v2.infra.external.ImgurClient" level="INFO" additivity="false">
+    <logger name="rinhacampusiv.api.v2.infra.external.imgur.ImgurClient" level="INFO" additivity="false">
         <appender-ref ref="IMGUR_FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>

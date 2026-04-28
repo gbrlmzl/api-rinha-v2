@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.user.UserDataUpdateDTO;
+import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
 import rinhacampusiv.api.v2.service.user.UserService;
 
 @RestController
@@ -23,12 +24,12 @@ public class UserController {
 
 
     @PatchMapping(value = "/me", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)  // /users/me → atualiza o próprio usuário autenticado
-    public ResponseEntity<?> update(
+    public ResponseEntity<UserEssentialsDetails> update(
             @RequestPart("data") @Valid UserDataUpdateDTO data,
             @RequestPart(value = "profilePic", required = false) MultipartFile profilePic,
             Authentication authentication) {
 
-        var updatedUser = userService.updateUser(data, profilePic, authentication);
+        UserEssentialsDetails updatedUser = userService.updateUser(data, profilePic, authentication);
 
         return ResponseEntity.ok(updatedUser);
     }

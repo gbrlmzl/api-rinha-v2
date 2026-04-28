@@ -1,7 +1,7 @@
 package rinhacampusiv.api.v2.domain.tournaments.tournaments;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import rinhacampusiv.api.v2.infra.exception.ValidatorException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
 
 public enum TournamentStatus {
     OPEN,

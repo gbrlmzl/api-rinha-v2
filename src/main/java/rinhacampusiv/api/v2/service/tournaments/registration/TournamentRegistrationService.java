@@ -27,11 +27,11 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
 import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.infra.exception.TeamNotFoundException;
-import rinhacampusiv.api.v2.infra.exception.TournamentFullException;
-import rinhacampusiv.api.v2.infra.exception.TournamentNotFoundException;
-import rinhacampusiv.api.v2.infra.exception.UserNotAuthenticatedException;
-import rinhacampusiv.api.v2.infra.external.ImgurClient;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TeamNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentFullException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
+import rinhacampusiv.api.v2.infra.exception.auth.UserNotAuthenticatedException;
+import rinhacampusiv.api.v2.infra.external.imgur.ImgurClient;
 import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
 import rinhacampusiv.api.v2.validators.tournament.team.register.TournamentTeamRegisterValidator;
 import rinhacampusiv.api.v2.validators.tournament.team.register.retry.TournamentRetryRegisterValidator;
@@ -199,12 +199,11 @@ public class TournamentRegistrationService {
                 TeamStatus.EXPIRED_PAYMENT_PROBLEM,
                 TeamStatus.CANCELED
         );
-        return teamRepository.existsByNameAndTournamentIdAndStatusNotIn(name, tournamentId, status);
+        return teamRepository.existsByNameIgnoreCaseAndTournamentIdAndStatusNotIn(name, tournamentId, status);
     }
 
     public TournamentRegistrationStatusData getRegistrationStatus(String tournamentSlug, Authentication authentication) {
         validateAuthentication(authentication);
-
         User captain = (User) authentication.getPrincipal();
         Tournament tournament = tournamentRepository.findBySlug(tournamentSlug).orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
         validateTournamentStatus(tournament);

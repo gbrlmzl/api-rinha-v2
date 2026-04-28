@@ -15,9 +15,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import rinhacampusiv.api.v2.infra.exception.auth.*;
+import rinhacampusiv.api.v2.infra.exception.payments.MercadoPagoPaymentException;
 import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.payments.TeamWithoutPaymentException;
-import rinhacampusiv.api.v2.infra.exception.user.InvalidCurrentPasswordException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.*;
+import rinhacampusiv.api.v2.infra.exception.users.AccountNotActivatedException;
+import rinhacampusiv.api.v2.infra.exception.users.InvalidCurrentPasswordException;
+import rinhacampusiv.api.v2.infra.exception.users.ProfilePicUploadException;
 
 import java.util.Map;
 

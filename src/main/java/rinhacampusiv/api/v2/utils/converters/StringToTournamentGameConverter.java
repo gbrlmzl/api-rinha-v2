@@ -3,7 +3,7 @@ package rinhacampusiv.api.v2.utils.converters;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
-import rinhacampusiv.api.v2.infra.exception.ValidatorException;
+import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
 
 //Resolve a filtragem
 @Component

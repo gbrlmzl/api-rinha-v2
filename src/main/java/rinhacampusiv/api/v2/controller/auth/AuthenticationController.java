@@ -9,15 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import rinhacampusiv.api.v2.domain.user.GeneratedAuthCookies;
-import rinhacampusiv.api.v2.domain.user.LoginData;
-import rinhacampusiv.api.v2.domain.user.RegisterData;
-import rinhacampusiv.api.v2.domain.user.UserEssentialsDetails;
+import rinhacampusiv.api.v2.domain.auth.*;
+import rinhacampusiv.api.v2.domain.user.*;
 import rinhacampusiv.api.v2.service.authentication.UserAuthService;
 import rinhacampusiv.api.v2.service.authentication.UserRegisterService;
 import rinhacampusiv.api.v2.service.user.UserService;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -37,61 +33,57 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @Transactional
-    public ResponseEntity<?> registerAction(@RequestBody @Valid RegisterData data) {
-
+    public ResponseEntity<RegisterUserResponse> registerUser(@RequestBody @Valid RegisterData data) {
         userRegisterService.registerUser(data);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "Usuário cadastrado com sucesso.\nLink de confirmação da conta enviado via email."));
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RegisterUserResponse("Usuário cadastrado com sucesso.\nLink de confirmação da conta enviado via email."));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginAction(@RequestBody @Valid LoginData data) {
-
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginData data) {
         GeneratedAuthCookies cookies = userAuthService.login(data);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookies.accessTokenCookie())
                 .header(HttpHeaders.SET_COOKIE, cookies.refreshTokenCookie())
-                .body(Map.of("status", "ok")); // opcionalmente devolve algo curto
+                .body(new LoginResponse("Login efetuado com sucesso.")); // opcionalmente devolve algo curto
 
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<LogoutResponse> logout() {
 
         GeneratedAuthCookies cleanCookies = userAuthService.logout();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cleanCookies.accessTokenCookie())
                 .header(HttpHeaders.SET_COOKIE, cleanCookies.refreshTokenCookie())
-                .body(Map.of("status", "ok"));
+                .body(new LogoutResponse("Sessão encerrada."));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request) {
-
+    public ResponseEntity<RefreshTokenResponse> refresh(HttpServletRequest request) {
         String newAccessCookie = userAuthService.refresh(request);
 
         return ResponseEntity.ok()
                 .header("Set-Cookie", newAccessCookie)
-                .body("Token renovado");
+                .body(new RefreshTokenResponse("Token renovado com sucesso."));
     }
 
 
 
     @GetMapping("/me")
-    public ResponseEntity<?> me (HttpServletRequest request) {
+    public ResponseEntity<AuthenticatedUserDataResponse> getAuthenticatedUserData (HttpServletRequest request) {
 
         UserEssentialsDetails user = userService.getAuthenticatedUser(request);
 
-        return ResponseEntity.ok(Map.of(
-                "username",   user.username(),
-                "nickname",   user.nickname(),
-                "email",      user.email(),
-                "profilePic", user.profilePic() != null ? user.profilePic() : "",
-                "role",       user.role().name()
-        ));
-
+        return ResponseEntity.ok(
+                new AuthenticatedUserDataResponse(
+                        user.username(),
+                        user.nickname(),
+                        user.email(),
+                        user.profilePic() != null ? user.profilePic() : "",
+                        user.role().name()));
     }
 
 }
