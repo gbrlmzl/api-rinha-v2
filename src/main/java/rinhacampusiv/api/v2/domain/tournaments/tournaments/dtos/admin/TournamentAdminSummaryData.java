@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 
 public record TournamentAdminSummaryData(
         Long id,
+        String slug,
         String name,
         TournamentGame game,
         TournamentStatus status,
@@ -23,6 +24,7 @@ public record TournamentAdminSummaryData(
     public TournamentAdminSummaryData(Tournament tournament, Integer confirmedTeamsCount){
         this(
                 tournament.getId(),
+                tournament.getSlug(),
                 tournament.getName(),
                 tournament.getGame(),
                 tournament.getStatus(),

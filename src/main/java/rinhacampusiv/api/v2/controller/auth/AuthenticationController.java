@@ -88,7 +88,8 @@ public class AuthenticationController {
                 "username",   user.username(),
                 "nickname",   user.nickname(),
                 "email",      user.email(),
-                "profilePic", user.profilePic() != null ? user.profilePic() : ""
+                "profilePic", user.profilePic() != null ? user.profilePic() : "",
+                "role",       user.role().name()
         ));
 
     }

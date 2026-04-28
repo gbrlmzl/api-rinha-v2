@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 
 public record TournamentAdminDetailData(
         Long id,
+        String slug,
         String name,
         TournamentGame game,
         TournamentStatus status,
@@ -25,6 +26,7 @@ public record TournamentAdminDetailData(
     public TournamentAdminDetailData(Tournament tournament) {
         this(
                 tournament.getId(),
+                tournament.getSlug(),
                 tournament.getName(),
                 tournament.getGame(),
                 tournament.getStatus(),
