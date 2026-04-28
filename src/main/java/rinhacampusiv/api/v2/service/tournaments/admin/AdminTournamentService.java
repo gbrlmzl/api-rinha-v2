@@ -93,9 +93,20 @@ public class AdminTournamentService {
                         row -> ((Long) row[1]).intValue()
                 ));
 
+        Map<Long, Integer> activeTeamsMap = teamRepository
+                .countByTournamentIdsAndStatusIn(
+                        tournamentIds,
+                        List.of(TeamStatus.PENDING_PAYMENT, TeamStatus.READY))
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
         return tournamentsPage.map(tournament ->
                 new TournamentAdminSummaryData(tournament,
-                        confirmedTeamsMap.getOrDefault(tournament.getId(), 0))
+                        confirmedTeamsMap.getOrDefault(tournament.getId(), 0),
+                        activeTeamsMap.getOrDefault(tournament.getId(), 0))
         );
     }
 
@@ -156,7 +167,7 @@ public class AdminTournamentService {
             return;
         }
 
-        List<Team> teams = teamRepository.findAllByTournamentIdWithDetails(id);
+        List<Team> teams = teamRepository.findAllByTournamentIdWithPayments(id);
         cancelPayments(teams);
 
         tournament.setStatus(TournamentStatus.CANCELED);

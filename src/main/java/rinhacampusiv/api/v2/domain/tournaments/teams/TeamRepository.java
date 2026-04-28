@@ -41,6 +41,11 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     @Query("SELECT t FROM Team t LEFT JOIN FETCH t.players LEFT JOIN FETCH t.payments WHERE t.tournament.id = :tournamentId")
     List<Team> findAllByTournamentIdWithDetails(@Param("tournamentId") Long tournamentId);
 
+    // Variante que só carrega pagamentos — usada no cancelamento em massa do torneio.
+    // Evita o MultipleBagFetchException de fazer JOIN FETCH em duas coleções no mesmo SELECT.
+    @Query("SELECT t FROM Team t LEFT JOIN FETCH t.payments WHERE t.tournament.id = :tournamentId")
+    List<Team> findAllByTournamentIdWithPayments(@Param("tournamentId") Long tournamentId);
+
     //Busca equipes com pagamentos pendentes
     @Query("SELECT t FROM Team t JOIN FETCH t.payments WHERE t.status = 'PENDING_PAYMENT' ")
     List<Team> findAllPendingPayments();
@@ -52,6 +57,10 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     @Query("SELECT t.tournament.id, COUNT(t.id) FROM Team t " +
             "WHERE t.tournament.id IN :ids AND t.status = :status GROUP BY t.tournament.id")
     List<Object[]> countByTournamentIdsAndStatus(@Param("ids") List<Long> ids, @Param("status") TeamStatus status);
+
+    @Query("SELECT t.tournament.id, COUNT(t.id) FROM Team t " +
+            "WHERE t.tournament.id IN :ids AND t.status IN :statuses GROUP BY t.tournament.id")
+    List<Object[]> countByTournamentIdsAndStatusIn(@Param("ids") List<Long> ids, @Param("statuses") List<TeamStatus> statuses);
 
     @Query("SELECT t FROM Team t JOIN FETCH t.players JOIN FETCH t.captain " +
             "WHERE t.tournament.id = :id AND t.status = 'READY'")

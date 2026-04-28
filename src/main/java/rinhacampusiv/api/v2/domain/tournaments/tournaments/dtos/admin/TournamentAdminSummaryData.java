@@ -14,6 +14,7 @@ public record TournamentAdminSummaryData(
         TournamentGame game,
         TournamentStatus status,
         Integer confirmedTeamsCount,
+        Integer activeTeamsCount,
         Integer maxTeams,
         BigDecimal prizePool,
         OffsetDateTime startsAt,
@@ -21,7 +22,7 @@ public record TournamentAdminSummaryData(
         String imageUrl
 ) {
 
-    public TournamentAdminSummaryData(Tournament tournament, Integer confirmedTeamsCount){
+    public TournamentAdminSummaryData(Tournament tournament, Integer confirmedTeamsCount, Integer activeTeamsCount){
         this(
                 tournament.getId(),
                 tournament.getSlug(),
@@ -29,6 +30,7 @@ public record TournamentAdminSummaryData(
                 tournament.getGame(),
                 tournament.getStatus(),
                 confirmedTeamsCount,
+                activeTeamsCount,
                 tournament.getMaxTeams(),
                 tournament.getPrizePool(),
                 tournament.getStartsAt(),
