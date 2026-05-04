@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.infra.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,6 +31,11 @@ public class SecurityConfigurations {
 
     @Autowired
     private CustomAuthEntryPoint authEntryPoint;
+
+    // Origins permitidos pelo CORS, separados por virgula. Default cobre dev local.
+    // Em prod definir CORS_ALLOWED_ORIGINS=https://rinhaufpb.com (ou multiplos).
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOriginsCsv;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -84,7 +90,11 @@ public class SecurityConfigurations {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // NÃO "*"
+        List<String> origins = java.util.Arrays.stream(allowedOriginsCsv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
+        config.setAllowedOrigins(origins); // NÃO "*" (allowCredentials=true exige lista explicita)
         config.setAllowedMethods(List.of("GET","POST","PUT", "PATCH", "DELETE","OPTIONS"));
         config.setAllowCredentials(true); // muito importante
         config.setAllowedHeaders(List.of("*"));
