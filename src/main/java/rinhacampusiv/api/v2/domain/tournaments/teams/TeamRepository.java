@@ -62,6 +62,10 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
             "WHERE t.tournament.id IN :ids AND t.status IN :statuses GROUP BY t.tournament.id")
     List<Object[]> countByTournamentIdsAndStatusIn(@Param("ids") List<Long> ids, @Param("statuses") List<TeamStatus> statuses);
 
+    @Query("SELECT t.tournament.id, COUNT(t.id) FROM Team t " +
+            "WHERE t.tournament.id IN :ids GROUP BY t.tournament.id")
+    List<Object[]> countByTournamentIds(@Param("ids") List<Long> ids);
+
     @Query("SELECT t FROM Team t JOIN FETCH t.players JOIN FETCH t.captain " +
             "WHERE t.tournament.id = :id AND t.status = 'READY'")
     List<Team> findReadyTeamsWithDetails(@Param("id") Long tournamentId);

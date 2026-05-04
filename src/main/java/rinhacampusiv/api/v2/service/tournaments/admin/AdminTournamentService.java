@@ -103,10 +103,19 @@ public class AdminTournamentService {
                         row -> ((Long) row[1]).intValue()
                 ));
 
+        Map<Long, Integer> totalTeamsMap = teamRepository
+                .countByTournamentIds(tournamentIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
         return tournamentsPage.map(tournament ->
                 new TournamentAdminSummaryData(tournament,
                         confirmedTeamsMap.getOrDefault(tournament.getId(), 0),
-                        activeTeamsMap.getOrDefault(tournament.getId(), 0))
+                        activeTeamsMap.getOrDefault(tournament.getId(), 0),
+                        totalTeamsMap.getOrDefault(tournament.getId(), 0))
         );
     }
 
@@ -154,6 +163,11 @@ public class AdminTournamentService {
     @Transactional
     public void cancelTournament(Long id, boolean force) {
         Tournament tournament = findTournamentById(id);
+
+        if (tournament.getStatus() == TournamentStatus.CANCELED) {
+            throw new ValidatorException("Este torneio já está cancelado.");
+        }
+
         Integer totalTeams = teamRepository.countByTournamentId(id);
 
         if (totalTeams > 0 && !force) {
