@@ -58,7 +58,12 @@ public class UserAuthService {
     }
 
     public String refresh(HttpServletRequest request) {
-        String refreshToken = Arrays.stream(request.getCookies())
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new RefreshTokenNotFoundException("Refresh token não encontrado");
+        }
+
+        String refreshToken = Arrays.stream(cookies)
                 .filter(c -> "REFRESH".equals(c.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
@@ -70,13 +75,7 @@ public class UserAuthService {
 
         String newAccessToken = tokenService.generateToken(subject, username);
 
-        ResponseCookie newAccessCookie = ResponseCookie.from("JWT", newAccessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(15 * 60) //15 minutos
-                .sameSite("Lax")
-                .build();
+        ResponseCookie newAccessCookie = cookieService.buildAccessCookie(newAccessToken);
 
         return newAccessCookie.toString();
     }

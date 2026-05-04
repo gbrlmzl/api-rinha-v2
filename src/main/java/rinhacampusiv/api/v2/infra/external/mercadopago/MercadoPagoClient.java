@@ -111,7 +111,7 @@ public class MercadoPagoClient {
                                 .build())
                 .build();
 
-        OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(120);
+        OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(15);
 
         PaymentCreateRequest paymentData = PaymentCreateRequest.builder()
                 .transactionAmount(value)

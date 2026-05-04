@@ -1,11 +1,15 @@
 package rinhacampusiv.api.v2.service.authentication;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.auth.GeneratedAuthCookies;
 
 @Service
 public class CookieService {
+
+    @Value("${app.cookies.secure}")
+    private boolean secureCookies;
 
     public GeneratedAuthCookies generateCookies(String accessToken, String refreshToken, boolean keepLoggedIn){
 
@@ -18,47 +22,52 @@ public class CookieService {
         }
 
 
-        //  criar cookie HttpOnly
         ResponseCookie accessCookie = ResponseCookie.from("JWT", accessToken)
                 .httpOnly(true)
-                .secure(true)             // HTTPS obrigatório em produção
-                .path("/")                // escopo do cookie
-                .maxAge( 15 * 60)      // 15 minutos em segundos
-                .sameSite("Lax")         // ajuda a mitigar CSRF (ajuste conforme seu domínio) -> Funciona com API e Front no mesmo dominio
+                .secure(secureCookies)
+                .path("/")
+                .maxAge( 15 * 60)
+                .sameSite("Lax")
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookies)
                 .path("/")
                 .maxAge(refreshTokenAge)
                 .sameSite("Lax")
                 .build();
 
-
-
-
         return new GeneratedAuthCookies(accessCookie.toString(), refreshCookie.toString());
     }
 
     public GeneratedAuthCookies generateCleanCookies(){
-        // Sobrescreve os cookies com maxAge=0, forçando o navegador a deletá-los
         ResponseCookie clearAccess = ResponseCookie.from("JWT", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookies)
                 .path("/")
-                .maxAge(0)           // instrui o navegador a apagar imediatamente
+                .maxAge(0)
                 .sameSite("Lax")
                 .build();
 
         ResponseCookie clearRefresh = ResponseCookie.from("REFRESH", "")
                 .httpOnly(true)
-                .secure(true)
-                .path("/")  // deve ser o mesmo path do cookie original
+                .secure(secureCookies)
+                .path("/")
                 .maxAge(0)
                 .sameSite("Lax")
                 .build();
 
         return new GeneratedAuthCookies(clearAccess.toString(), clearRefresh.toString());
+    }
+
+    public ResponseCookie buildAccessCookie(String accessToken) {
+        return ResponseCookie.from("JWT", accessToken)
+                .httpOnly(true)
+                .secure(secureCookies)
+                .path("/")
+                .maxAge(15 * 60)
+                .sameSite("Lax")
+                .build();
     }
 }
