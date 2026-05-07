@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEvent;
 import rinhacampusiv.api.v2.domain.tournaments.payments.events.PaymentEventRepository;
@@ -22,6 +23,7 @@ public class PaymentCancellationService {
     @Autowired
     private PaymentEventRepository eventRepository;
 
+    @Transactional
     public void cancelTeamPayments(Team team, String logContext) {
         for (PaymentEntity payment : team.getPayments()) {
             if (payment.isCanceled()) continue;

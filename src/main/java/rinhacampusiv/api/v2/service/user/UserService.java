@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserDataUpdateDTO;
@@ -37,6 +38,7 @@ public class UserService {
     private ImgurClient imgurClient;
 
 
+    @Transactional(readOnly = true)
     public UserEssentialsDetails getAuthenticatedUser(HttpServletRequest request) {
 
         if (request.getCookies() == null) {
@@ -69,6 +71,7 @@ public class UserService {
 
     }
 
+    @Transactional
     public UserEssentialsDetails updateUser(UserDataUpdateDTO data, MultipartFile profilePic, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 

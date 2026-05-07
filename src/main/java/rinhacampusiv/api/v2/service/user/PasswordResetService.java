@@ -50,6 +50,7 @@ public class PasswordResetService {
     }
 
     // ─── Etapa 2: validar token (para o frontend verificar antes de mostrar o form) ──
+    @Transactional(readOnly = true)
     public void validateToken(String token) {
         boolean valid =  tokenRepository.findByToken(token).map(PasswordResetToken::isValid).orElse(false);
         if(!valid){

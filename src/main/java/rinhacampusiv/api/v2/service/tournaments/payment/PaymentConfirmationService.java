@@ -6,6 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
@@ -33,6 +36,7 @@ public class PaymentConfirmationService {
     @Autowired
     private EmailService emailService;
 
+    @Transactional
     public void verifyPayment(Payment paymentData) {
         String mercadoPagoPaymentId = String.valueOf(paymentData.getId());
         PaymentEntity payment = paymentRepository
@@ -56,8 +60,7 @@ public class PaymentConfirmationService {
             log.info("[PAYMENT] Pagamento aprovado | uuid={} | equipe={} | torneio={}",
                     payment.getUuid(), paymentTeam.getName(), paymentTeam.getTournament().getName());
 
-            Map<String, String> payload = Map.of("status", payment.getStatus().name());
-            messageSender.convertAndSend("/topic/payment/" + payment.getUuid(), payload);
+            notifyPaymentStatusAfterCommit(payment);
 
             emailService.sendPaymentConfirmationEmail(paymentTeam);
 
@@ -69,8 +72,25 @@ public class PaymentConfirmationService {
             log.warn("[PAYMENT] Pagamento expirado via webhook | uuid={} | mpId={}",
                     payment.getUuid(), mercadoPagoPaymentId);
 
-            Map<String, String> payload = Map.of("status", payment.getStatus().name());
-            messageSender.convertAndSend("/topic/payment/" + payment.getUuid(), payload);
+            notifyPaymentStatusAfterCommit(payment);
         }
+    }
+
+    /**
+     * Agenda o envio da mensagem STOMP para depois do commit da transação atual.
+     *
+     * Sem isso, o front receberia o WS antes das mudanças estarem visíveis no banco
+     * e veria dados antigos ao re-buscar o status.
+     */
+    private void notifyPaymentStatusAfterCommit(PaymentEntity payment) {
+        String uuid = payment.getUuid();
+        String statusName = payment.getStatus().name();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                Map<String, String> payload = Map.of("status", statusName);
+                messageSender.convertAndSend("/topic/payment/" + uuid, payload);
+            }
+        });
     }
 }

@@ -22,6 +22,7 @@ public class AccountActivationService {
     @Autowired
     private EmailService emailService;
 
+    @Transactional(readOnly = true)
     public void validateToken(String token) {
         boolean isValid =  tokenRepository.findByToken(token)
                 .map(AccountActivationToken::isValid)
