@@ -17,11 +17,10 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicDetailData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
-import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
+import rinhacampusiv.api.v2.utils.tournaments.TeamCountUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class PublicTournamentService {
@@ -32,69 +31,44 @@ public class PublicTournamentService {
     @Autowired
     private TeamRepository teamRepository;
 
-
-        //Implementar a verificação para a seção de torneios FINISHED
-        @Transactional(readOnly = true)
-        public TournamentPublicDetailData getPublicTournamentView(Long id, Long userId) {
-            Tournament tournament = tournamentRepository.findById(id)
-                    .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
-
-            if (tournament.getStatus() == TournamentStatus.CANCELED)
-                throw new EntityNotFoundException("Torneio não disponível");
-
-            List<Team> readyTeams = teamRepository.findReadyTeamsWithDetails(id);
-
-            List<TeamPublicData> confirmedTeams = readyTeams.stream()
-                    .map(TeamPublicData::new)
-                    .toList();
-
-            UserTeamStatusData userTeam = null;
-            if (userId != null)
-                userTeam = teamRepository
-                        .findByCaptainIdAndTournamentIdAndStatusNot(userId, id, TeamStatus.CANCELED)
-                        .map(UserTeamStatusData::new)
-                        .orElse(null);
-
-            return new TournamentPublicDetailData(tournament, readyTeams.size(), confirmedTeams, userTeam);
-        }
-
-        @Transactional(readOnly = true)
-        public TournamentPublicDetailData getPublicTournamentViewBySlug(String slug, Long userId) {
-            Tournament tournament = tournamentRepository.findBySlug(slug)
-                    .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
-
-            if (tournament.getStatus() == TournamentStatus.CANCELED)
-                throw new EntityNotFoundException("Torneio não disponível");
-
-            Long id = tournament.getId();
-            List<Team> readyTeams = teamRepository.findReadyTeamsWithDetails(id);
-
-            List<TeamPublicData> confirmedTeams = readyTeams.stream()
-                    .map(TeamPublicData::new)
-                    .toList();
-
-            UserTeamStatusData userTeam = null;
-            if (userId != null)
-                userTeam = teamRepository
-                        .findByCaptainIdAndTournamentIdAndStatusNot(userId, id, TeamStatus.CANCELED)
-                        .map(UserTeamStatusData::new)
-                        .orElse(null);
-
-            return new TournamentPublicDetailData(tournament, readyTeams.size(), confirmedTeams, userTeam);
-        }
-
-        @Transactional(readOnly = true)
-        public Page<TournamentPublicSummaryData> listByGameAndStatusIn(TournamentGame game, List<TournamentStatus> statuses, Pageable pageable) {
-            Page<Tournament> page = tournamentRepository.findByGameAndStatusIn(game, statuses, pageable);
-            List<Long> ids = page.map(Tournament::getId).toList();
-            Map<Long, Long> counts = teamRepository.countByTournamentIdsAndStatus(ids, TeamStatus.READY)
-                    .stream()
-                    .collect(Collectors.toMap(
-                            row -> (Long) row[0],
-                            row -> (Long) row[1]
-                    ));
-
-            return page.map(t -> new TournamentPublicSummaryData(t,
-                    counts.getOrDefault(t.getId(), 0L).intValue()));
-        }
+    //Implementar a verificação para a seção de torneios FINISHED
+    @Transactional(readOnly = true)
+    public TournamentPublicDetailData getPublicTournamentView(Long id, Long userId) {
+        return buildPublicDetail(tournamentRepository.findByIdOrThrow(id), userId);
     }
+
+    @Transactional(readOnly = true)
+    public TournamentPublicDetailData getPublicTournamentViewBySlug(String slug, Long userId) {
+        return buildPublicDetail(tournamentRepository.findBySlugOrThrow(slug), userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TournamentPublicSummaryData> listByGameAndStatusIn(TournamentGame game, List<TournamentStatus> statuses, Pageable pageable) {
+        Page<Tournament> page = tournamentRepository.findByGameAndStatusIn(game, statuses, pageable);
+        List<Long> ids = page.map(Tournament::getId).toList();
+        Map<Long, Integer> counts = TeamCountUtils.toCountMap(
+                teamRepository.countByTournamentIdsAndStatus(ids, TeamStatus.READY));
+
+        return page.map(t -> new TournamentPublicSummaryData(t, counts.getOrDefault(t.getId(), 0)));
+    }
+
+    private TournamentPublicDetailData buildPublicDetail(Tournament tournament, Long userId) {
+        if (tournament.getStatus() == TournamentStatus.CANCELED) {
+            throw new EntityNotFoundException("Torneio não disponível");
+        }
+
+        Long id = tournament.getId();
+        List<Team> readyTeams = teamRepository.findReadyTeamsWithDetails(id);
+
+        List<TeamPublicData> confirmedTeams = readyTeams.stream()
+                .map(TeamPublicData::new)
+                .toList();
+
+        UserTeamStatusData userTeam = userId == null ? null : teamRepository
+                .findByCaptainIdAndTournamentIdAndStatusNot(userId, id, TeamStatus.CANCELED)
+                .map(UserTeamStatusData::new)
+                .orElse(null);
+
+        return new TournamentPublicDetailData(tournament, readyTeams.size(), confirmedTeams, userTeam);
+    }
+}

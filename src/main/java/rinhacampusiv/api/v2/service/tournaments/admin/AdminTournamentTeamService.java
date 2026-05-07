@@ -15,7 +15,6 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
 import rinhacampusiv.api.v2.infra.exception.tournaments.TeamNotFoundException;
-import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
 import rinhacampusiv.api.v2.service.tournaments.payment.PaymentCancellationService;
 import rinhacampusiv.api.v2.validators.tournament.team.ban.TournamentTeamBanValidator;
 
@@ -40,14 +39,14 @@ public class AdminTournamentTeamService {
 
     @Transactional(readOnly = true)
     public Page<TeamAdminSummaryData> listTeams(Long tournamentId, List<TeamStatus> statusList, Pageable pageable) {
-        findTournamentById(tournamentId);
+        tournamentRepository.findByIdOrThrow(tournamentId);
         return teamRepository.findByTournamentIdAndStatusIn(tournamentId, statusList, pageable)
                 .map(TeamAdminSummaryData::new);
     }
 
     @Transactional
     public void banTeam(Long tournamentId, Long teamId) {
-        Tournament tournament = findTournamentById(tournamentId);
+        Tournament tournament = tournamentRepository.findByIdOrThrow(tournamentId);
 
         tournamentTeamBanValidators.forEach(validator -> validator.validar(tournament, teamId));
 
@@ -68,12 +67,5 @@ public class AdminTournamentTeamService {
             log.warn("[ADMIN] Equipe banida | torneioId={} | torneio={} | equipeId={} | equipe={}",
                     tournamentId, tournament.getName(), teamId, team.getName());
         }
-    }
-
-    //AUXILIARES
-
-    private Tournament findTournamentById(Long id) {
-        return tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
     }
 }

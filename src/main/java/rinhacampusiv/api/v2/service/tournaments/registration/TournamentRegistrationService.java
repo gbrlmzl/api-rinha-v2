@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentRepository;
@@ -29,7 +30,6 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegist
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.infra.exception.tournaments.TeamNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentFullException;
-import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.auth.UserNotAuthenticatedException;
 import rinhacampusiv.api.v2.infra.external.imgur.ImgurClient;
 import rinhacampusiv.api.v2.infra.external.mercadopago.MercadoPagoClient;
@@ -37,7 +37,6 @@ import rinhacampusiv.api.v2.validators.tournament.team.register.TournamentTeamRe
 import rinhacampusiv.api.v2.validators.tournament.team.register.retry.TournamentRetryRegisterValidator;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +44,12 @@ import java.util.Optional;
 public class TournamentRegistrationService {
 
     private static final Logger log = LoggerFactory.getLogger(TournamentRegistrationService.class);
+
+    private static final List<TeamStatus> NAME_CHECK_EXCLUDED_STATUSES = List.of(
+            TeamStatus.EXPIRED_PAYMENT,
+            TeamStatus.EXPIRED_PAYMENT_PROBLEM,
+            TeamStatus.CANCELED
+    );
 
     @Autowired
     private ImgurClient imgurClient;
@@ -70,12 +75,12 @@ public class TournamentRegistrationService {
     @Autowired
     private PaymentEventRepository eventRepository;
 
+    @Transactional
     public GeneratedPaymentData registerTeam(Long tournamentId, TournamentRegistrationData registrationData,
                                              MultipartFile teamShieldFile,
                                              Authentication authentication) {
 
-        Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
+        Tournament tournament = tournamentRepository.findByIdOrThrow(tournamentId);
 
         User captain = (User) authentication.getPrincipal();
 
@@ -152,11 +157,12 @@ public class TournamentRegistrationService {
         return new PaymentEntity(generatedPayment, payerName);
     }
 
+    @Transactional
     public CanceledTeamData updateTeam(Long tournamentId, CancelRegistrationDto updateDTO, Authentication authentication) {
         validateAuthentication(authentication);
 
         User captain = (User) authentication.getPrincipal();
-        Tournament tournament = getTournamentOrThrow(tournamentId);
+        Tournament tournament = tournamentRepository.findByIdOrThrow(tournamentId);
         validateTournamentStatus(tournament);
 
         if (!updateDTO.cancelRegistration()) {
@@ -194,18 +200,14 @@ public class TournamentRegistrationService {
     }
 
     public boolean checkExistentTeamNameInTournament(Long tournamentId, String name) {
-        List<TeamStatus> status = Arrays.asList(
-                TeamStatus.EXPIRED_PAYMENT,
-                TeamStatus.EXPIRED_PAYMENT_PROBLEM,
-                TeamStatus.CANCELED
-        );
-        return teamRepository.existsByNameIgnoreCaseAndTournamentIdAndStatusNotIn(name, tournamentId, status);
+        return teamRepository.existsByNameIgnoreCaseAndTournamentIdAndStatusNotIn(name, tournamentId, NAME_CHECK_EXCLUDED_STATUSES);
     }
 
+    @Transactional(readOnly = true)
     public TournamentRegistrationStatusData getRegistrationStatus(String tournamentSlug, Authentication authentication) {
         validateAuthentication(authentication);
         User captain = (User) authentication.getPrincipal();
-        Tournament tournament = tournamentRepository.findBySlug(tournamentSlug).orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
+        Tournament tournament = tournamentRepository.findBySlugOrThrow(tournamentSlug);
         validateTournamentStatus(tournament);
 
         Optional<Team> team = findTeam(captain, tournament.getId());
@@ -218,17 +220,10 @@ public class TournamentRegistrationService {
         return handleNoTeam(tournament, maxTeamsReached);
     }
 
-    // ─── Auxiliares ────────────────────────────────────────────────────────────
-
     private void validateAuthentication(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
             throw new UserNotAuthenticatedException("Usuário deve estar autenticado para acessar o recurso");
         }
-    }
-
-    private Tournament getTournamentOrThrow(Long tournamentId) {
-        return tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
     }
 
     private void validateTournamentStatus(Tournament tournament) {
@@ -247,21 +242,19 @@ public class TournamentRegistrationService {
     }
 
     private TournamentRegistrationStatusData handleExistingTeam(Team team, Tournament tournament, boolean maxTeamsReached) {
-        if (tournament.getStatus() == TournamentStatus.FULL || maxTeamsReached) {
-            CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), true);
+        boolean tournamentFull = tournament.getStatus() == TournamentStatus.FULL || maxTeamsReached;
+        CheckRegistrationData registrationData = new CheckRegistrationData(
+                tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), tournamentFull);
+
+        if (tournamentFull) {
             return new TournamentRegistrationStatusData(registrationData);
         }
 
         PaymentEntity payment = team.getPayments().getLast();
-
         if (tournament.getStatus() == TournamentStatus.OPEN && payment.isPending()) {
-            GeneratedPaymentData generatedPaymentData = new GeneratedPaymentData(payment);
-
-            CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
-            return new TournamentRegistrationStatusData(registrationData, generatedPaymentData);
+            return new TournamentRegistrationStatusData(registrationData, new GeneratedPaymentData(payment));
         }
 
-        CheckRegistrationData registrationData = new CheckRegistrationData(tournament.getId(), true, team.getStatus(), team.getPlayersCount(), tournament.getStatus(), false);
         return new TournamentRegistrationStatusData(registrationData);
     }
 

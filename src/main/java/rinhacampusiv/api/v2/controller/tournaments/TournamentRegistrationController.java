@@ -40,7 +40,6 @@ public class TournamentRegistrationController {
     }
 
 
-    // Controller
     @PostMapping(value = "/{tournamentId}/registrations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GeneratedPaymentData> registerTeamInTournament(
             @PathVariable Long tournamentId,

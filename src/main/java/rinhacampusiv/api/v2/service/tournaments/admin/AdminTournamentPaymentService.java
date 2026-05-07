@@ -67,8 +67,6 @@ public class AdminTournamentPaymentService {
         return mapToPaymentEventDataPage(paymentsPage);
     }
 
-    // AUXILIARES
-
     private Page<PaymentEventData> mapToPaymentEventDataPage(Page<PaymentEntity> paymentsPage) {
         List<Long> paymentIds = paymentsPage.getContent().stream()
                 .map(PaymentEntity::getId)

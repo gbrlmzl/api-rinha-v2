@@ -19,16 +19,15 @@ import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.Tournament
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentAdminSummaryData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentCreationData;
 import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.admin.TournamentUpdateData;
-import rinhacampusiv.api.v2.infra.exception.tournaments.TournamentNotFoundException;
 import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
 import rinhacampusiv.api.v2.infra.external.imgur.ImgurClient;
 import rinhacampusiv.api.v2.service.tournaments.payment.PaymentCancellationService;
+import rinhacampusiv.api.v2.utils.tournaments.TeamCountUtils;
 import rinhacampusiv.api.v2.validators.tournament.creation.TournamentCreationValidator;
 import rinhacampusiv.api.v2.validators.tournament.update.TournamentUpdateValidator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class AdminTournamentService {
@@ -73,43 +72,24 @@ public class AdminTournamentService {
 
     @Transactional(readOnly = true)
     public Page<TournamentAdminSummaryData> getAllTournaments(TournamentGame game, Pageable pageable) {
-        Page<Tournament> tournamentsPage;
-
-        if (game != null) {
-            tournamentsPage = tournamentRepository.findByGame(game, pageable);
-        } else {
-            tournamentsPage = tournamentRepository.findAll(pageable);
-        }
+        Page<Tournament> tournamentsPage = (game != null)
+                ? tournamentRepository.findByGame(game, pageable)
+                : tournamentRepository.findAll(pageable);
 
         List<Long> tournamentIds = tournamentsPage.getContent().stream()
                 .map(Tournament::getId)
                 .toList();
 
-        Map<Long, Integer> confirmedTeamsMap = teamRepository
-                .countByTournamentIdsAndStatus(tournamentIds, TeamStatus.READY)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> ((Long) row[1]).intValue()
-                ));
+        Map<Long, Integer> confirmedTeamsMap = TeamCountUtils.toCountMap(
+                teamRepository.countByTournamentIdsAndStatus(tournamentIds, TeamStatus.READY));
 
-        Map<Long, Integer> activeTeamsMap = teamRepository
-                .countByTournamentIdsAndStatusIn(
+        Map<Long, Integer> activeTeamsMap = TeamCountUtils.toCountMap(
+                teamRepository.countByTournamentIdsAndStatusIn(
                         tournamentIds,
-                        List.of(TeamStatus.PENDING_PAYMENT, TeamStatus.READY))
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> ((Long) row[1]).intValue()
-                ));
+                        List.of(TeamStatus.PENDING_PAYMENT, TeamStatus.READY)));
 
-        Map<Long, Integer> totalTeamsMap = teamRepository
-                .countByTournamentIds(tournamentIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> ((Long) row[1]).intValue()
-                ));
+        Map<Long, Integer> totalTeamsMap = TeamCountUtils.toCountMap(
+                teamRepository.countByTournamentIds(tournamentIds));
 
         return tournamentsPage.map(tournament ->
                 new TournamentAdminSummaryData(tournament,
@@ -121,15 +101,12 @@ public class AdminTournamentService {
 
     @Transactional(readOnly = true)
     public TournamentAdminDetailData getTournamentById(Long id) {
-        Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
-
-        return new TournamentAdminDetailData(tournament);
+        return new TournamentAdminDetailData(tournamentRepository.findByIdOrThrow(id));
     }
 
     @Transactional
     public TournamentAdminDetailData updateTournament(Long id, TournamentUpdateData data, MultipartFile image) {
-        Tournament tournament = findTournamentById(id);
+        Tournament tournament = tournamentRepository.findByIdOrThrow(id);
 
         log.info("[TORNEIO] Atualizando torneio | id={} | nome={}", id, tournament.getName());
 
@@ -162,7 +139,7 @@ public class AdminTournamentService {
 
     @Transactional
     public void cancelTournament(Long id, boolean force) {
-        Tournament tournament = findTournamentById(id);
+        Tournament tournament = tournamentRepository.findByIdOrThrow(id);
 
         if (tournament.getStatus() == TournamentStatus.CANCELED) {
             throw new ValidatorException("Este torneio já está cancelado.");
@@ -196,12 +173,5 @@ public class AdminTournamentService {
             team.cancelPayment();
             team.setActive(false);
         }
-    }
-
-    //AUXILIARES
-
-    private Tournament findTournamentById(Long id) {
-        return tournamentRepository.findById(id)
-                .orElseThrow(() -> new TournamentNotFoundException("Torneio não encontrado"));
     }
 }

@@ -24,7 +24,6 @@ public class PublicTournamentController {
     @Autowired
     private PublicTournamentService publicService;
 
-    //Listagem Pública
     //Implementar a verificação para a seção de torneios FINISHED(Hall of Fame, No Service)
     @GetMapping
     public ResponseEntity<Page<TournamentPublicSummaryData>> listTournaments(
@@ -35,7 +34,6 @@ public class PublicTournamentController {
         return ResponseEntity.ok(publicService.listByGameAndStatusIn(game, status, pageable));
     }
 
-    // Detalhe público por ID
     @GetMapping("/{id}")
     public ResponseEntity<TournamentPublicDetailData> getTournament(
             @PathVariable Long id,
@@ -45,7 +43,6 @@ public class PublicTournamentController {
         return ResponseEntity.ok(publicService.getPublicTournamentView(id, userId));
     }
 
-    // Detalhe público por slug
     @GetMapping("/slug/{slug}")
     public ResponseEntity<TournamentPublicDetailData> getTournamentBySlug(
             @PathVariable String slug,

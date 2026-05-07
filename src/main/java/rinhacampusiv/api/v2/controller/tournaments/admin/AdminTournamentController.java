@@ -61,7 +61,6 @@ public class AdminTournamentController {
         return ResponseEntity.ok(response);
     }
 
-    //
     @PatchMapping("/{tournamentId}")
     public ResponseEntity<Void> deleteTournament(
             @PathVariable Long tournamentId,
@@ -70,7 +69,4 @@ public class AdminTournamentController {
         adminService.cancelTournament(tournamentId, force);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }
