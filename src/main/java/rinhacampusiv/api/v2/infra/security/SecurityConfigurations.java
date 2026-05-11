@@ -2,6 +2,7 @@ package rinhacampusiv.api.v2.infra.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,6 +32,11 @@ public class SecurityConfigurations {
     @Autowired
     private CustomAuthEntryPoint authEntryPoint;
 
+    // Origins permitidos pelo CORS, separados por virgula. Default cobre dev local.
+    // Em prod definir CORS_ALLOWED_ORIGINS=https://rinhaufpb.com (ou multiplos).
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOriginsCsv;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -42,21 +48,22 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/me").permitAll()
                         // Torneios — leitura pública, escrita restrita ao ADMIN
-                        .requestMatchers(HttpMethod.GET,    "/tournaments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,   "/tournaments").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH,  "/tournaments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/tournaments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/tournaments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/tournaments/me/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/tournaments/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Autorizar /webhook para a notificação do pagamento do mercadopago
-                        .requestMatchers(HttpMethod.POST,"/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/webhook").permitAll()
                         // Autorizar /ws/** para os cliente que vai se inscrever no websocket
                         .requestMatchers("/ws/**").permitAll()
                         // Autorizar rotas de recuperação de senha
-                        .requestMatchers(HttpMethod.POST, "/auth/password-reset/request", "/auth/password-reset/confirm").permitAll()
-                        .requestMatchers(HttpMethod.GET,  "/auth/password-reset/validate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/password-reset").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/auth/password-reset/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/auth/password-reset/**").permitAll()
                         // Autorizar rotas de validação de conta
                         .requestMatchers(HttpMethod.GET,  "/auth/activate/validate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/activate", "/auth/activate/resend").permitAll()
+                        // Autorizar Swagger
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**" ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
@@ -83,7 +90,11 @@ public class SecurityConfigurations {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // NÃO "*"
+        List<String> origins = java.util.Arrays.stream(allowedOriginsCsv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
+        config.setAllowedOrigins(origins); // NÃO "*" (allowCredentials=true exige lista explicita)
         config.setAllowedMethods(List.of("GET","POST","PUT", "PATCH", "DELETE","OPTIONS"));
         config.setAllowCredentials(true); // muito importante
         config.setAllowedHeaders(List.of("*"));

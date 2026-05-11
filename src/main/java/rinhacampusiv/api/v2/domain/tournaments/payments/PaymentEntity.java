@@ -2,8 +2,10 @@ package rinhacampusiv.api.v2.domain.tournaments.payments;
 
 import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.*;
-import lombok.*;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 
 import java.math.BigDecimal;
@@ -33,11 +35,13 @@ public class PaymentEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String uuid;
 
-    @Column(nullable = false, length = 50)
-    private String status; // pending, approved, rejected,
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
 
-    @Column(name = "status_detail", length = 100)
-    private String statusDetail;
+    @Column(name = "status_detail")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatusDetail statusDetail;
 
     @Column(name = "qr_code")
     private String qrCode;
@@ -62,8 +66,8 @@ public class PaymentEntity {
     /* Construtor legado */
     public PaymentEntity(Payment data) {
         this.mercadoPagoId = String.valueOf(data.getId());
-        this.status       = data.getStatus();
-        this.statusDetail = data.getStatusDetail();
+        this.status = PaymentStatus.fromMercadoPago(data.getStatus());
+        this.statusDetail = PaymentStatusDetail.fromMercadoPago(data.getStatusDetail());
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
 
@@ -75,45 +79,51 @@ public class PaymentEntity {
 
     public PaymentEntity(Payment data, String payerName) {
         this.mercadoPagoId = String.valueOf(data.getId());
-        this.status       = data.getStatus();
-        this.statusDetail = data.getStatusDetail();
+        this.status = PaymentStatus.fromMercadoPago(data.getStatus());
+        this.statusDetail = PaymentStatusDetail.fromMercadoPago(data.getStatusDetail());
         this.createdAt = data.getDateCreated();
         this.value = data.getTransactionAmount();
-
         this.uuid = UUID.randomUUID().toString();
-        this.expiresAt    = data.getDateOfExpiration();
+        this.expiresAt = data.getDateOfExpiration();
         this.qrCode = data.getPointOfInteraction().getTransactionData().getQrCode();
         this.payer = payerName;
-
     }
-
-
 
     public void linkTeam (Team team){
         this.team = team;
     }
 
+    public void approve(OffsetDateTime paidAt, String statusDetail) {
+        this.status = PaymentStatus.APPROVED;
+        this.statusDetail = PaymentStatusDetail.fromMercadoPago(statusDetail);
+        this.paidAt = paidAt;
+    }
+
+    public void expire() {
+        this.status = PaymentStatus.CANCELED;
+        this.statusDetail = PaymentStatusDetail.EXPIRED;
+    }
+
+    public void cancelByUser() {
+        this.status = PaymentStatus.CANCELED;
+        this.statusDetail = PaymentStatusDetail.CANCELED_BY_USER;
+    }
+
+    public void cancelByAdmin() {
+        this.status = PaymentStatus.CANCELED;
+        this.statusDetail = PaymentStatusDetail.CANCELED_BY_ADMIN;
+    }
+
     public boolean isPending() {
-        return "PENDING".equalsIgnoreCase(this.status);
+        return this.status == PaymentStatus.PENDING;
     }
 
-    public void approve(OffsetDateTime paidAt, String statusDetail){
-        this.setStatus("approved");
-        this.setStatusDetail(statusDetail);
-        this.setPaidAt(paidAt);
-
+    public boolean isCanceled() {
+        return this.status == PaymentStatus.CANCELED;
     }
 
-
-    public void cancel () {
-        this.setStatus("expired");
-        this.setStatusDetail("expired");
+    public boolean isApproved() {
+        return this.status == PaymentStatus.APPROVED;
     }
-    public void cancel(String statusDetail){
-        this.setStatus("expired");
-        this.setStatusDetail(statusDetail);
-    }
-
-
 
 }

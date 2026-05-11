@@ -14,7 +14,7 @@ public record WebSocketPaymentData(
 ) {
     public WebSocketPaymentData(PaymentEntity paymentData, String message) {
         this(
-                paymentData.getStatus(),
+                paymentData.getStatus().name(),
                 message,
                 paymentData.getMercadoPagoId(),
                 paymentData.getValue(),

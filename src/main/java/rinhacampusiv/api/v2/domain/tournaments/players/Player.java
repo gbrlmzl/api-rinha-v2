@@ -2,8 +2,11 @@ package rinhacampusiv.api.v2.domain.tournaments.players;
 
 
 import jakarta.persistence.*;
-import lombok.*;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PlayerRegisterData;
 import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
 import rinhacampusiv.api.v2.domain.user.User;
 

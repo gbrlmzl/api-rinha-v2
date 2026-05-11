@@ -1,0 +1,55 @@
+package rinhacampusiv.api.v2.controller.tournaments;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentGame;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicDetailData;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentPublicSummaryData;
+import rinhacampusiv.api.v2.domain.user.User;
+import rinhacampusiv.api.v2.service.tournaments.PublicTournamentService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/tournaments")
+public class PublicTournamentController {
+
+    @Autowired
+    private PublicTournamentService publicService;
+
+    //Implementar a verificação para a seção de torneios FINISHED(Hall of Fame, No Service)
+    @GetMapping
+    public ResponseEntity<Page<TournamentPublicSummaryData>> listTournaments(
+            @RequestParam TournamentGame game,
+            @RequestParam(defaultValue = "OPEN,FULL,ONGOING") List<TournamentStatus> status,
+            @PageableDefault(size = 9, sort = "startsAt", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        return ResponseEntity.ok(publicService.listByGameAndStatusIn(game, status, pageable));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TournamentPublicDetailData> getTournament(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        Long userId = authentication != null ? ((User) authentication.getPrincipal()).getId() : null;
+        return ResponseEntity.ok(publicService.getPublicTournamentView(id, userId));
+    }
+
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<TournamentPublicDetailData> getTournamentBySlug(
+            @PathVariable String slug,
+            Authentication authentication
+    ) {
+        Long userId = authentication != null ? ((User) authentication.getPrincipal()).getId() : null;
+        return ResponseEntity.ok(publicService.getPublicTournamentViewBySlug(slug, userId));
+    }
+
+}

@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import rinhacampusiv.api.v2.domain.user.User;
 import rinhacampusiv.api.v2.domain.user.UserRepository;
+import rinhacampusiv.api.v2.service.authentication.TokenService;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 

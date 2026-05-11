@@ -1,0 +1,71 @@
+package rinhacampusiv.api.v2.service.tournaments.admin;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import rinhacampusiv.api.v2.domain.tournaments.teams.Team;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamAdminSummaryData;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentStatus;
+import rinhacampusiv.api.v2.infra.exception.tournaments.TeamNotFoundException;
+import rinhacampusiv.api.v2.service.tournaments.payment.PaymentCancellationService;
+import rinhacampusiv.api.v2.validators.tournament.team.ban.TournamentTeamBanValidator;
+
+import java.util.List;
+
+@Service
+public class AdminTournamentTeamService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminTournamentTeamService.class);
+
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Autowired
+    private TournamentRepository tournamentRepository;
+
+    @Autowired
+    private PaymentCancellationService paymentCancellationService;
+
+    @Autowired
+    List<TournamentTeamBanValidator> tournamentTeamBanValidators;
+
+    @Transactional(readOnly = true)
+    public Page<TeamAdminSummaryData> listTeams(Long tournamentId, List<TeamStatus> statusList, Pageable pageable) {
+        tournamentRepository.findByIdOrThrow(tournamentId);
+        return teamRepository.findByTournamentIdAndStatusIn(tournamentId, statusList, pageable)
+                .map(TeamAdminSummaryData::new);
+    }
+
+    @Transactional
+    public void banTeam(Long tournamentId, Long teamId) {
+        Tournament tournament = tournamentRepository.findByIdOrThrow(tournamentId);
+
+        tournamentTeamBanValidators.forEach(validator -> validator.validar(tournament, teamId));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("Equipe não encontrada"));
+
+        boolean teamWasActive = team.isActive();
+
+        team.ban();
+        paymentCancellationService.cancelTeamPayments(team, "BAN");
+
+        if (teamWasActive && tournament.getStatus() == TournamentStatus.FULL) {
+            tournament.setStatus(TournamentStatus.OPEN);
+            tournamentRepository.save(tournament);
+            log.warn("[ADMIN] Equipe banida — torneio reaberto | torneioId={} | torneio={} | equipeId={} | equipe={}",
+                    tournamentId, tournament.getName(), teamId, team.getName());
+        } else {
+            log.warn("[ADMIN] Equipe banida | torneioId={} | torneio={} | equipeId={} | equipe={}",
+                    tournamentId, tournament.getName(), teamId, team.getName());
+        }
+    }
+}
