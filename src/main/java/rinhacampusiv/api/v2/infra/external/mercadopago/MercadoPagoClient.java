@@ -32,6 +32,9 @@ public class MercadoPagoClient {
     @Value("${mercadopago.access.token}")
     private String accessToken;
 
+    @Value("${mercadopago.notification.url}")
+    private String notificationUrl;
+
 
 
     private PaymentClient paymentClient;
@@ -118,7 +121,7 @@ public class MercadoPagoClient {
                 .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
                 .dateOfExpiration(expiresAt)
-                    .notificationUrl("https://pursuable-unexposed-fender.ngrok-free.dev/webhook?source_news=webhooks")
+                    .notificationUrl(notificationUrl)
                 .payer(payerData)
                 .build();
 
