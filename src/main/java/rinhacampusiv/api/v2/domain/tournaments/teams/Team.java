@@ -1,24 +1,31 @@
 package rinhacampusiv.api.v2.domain.tournaments.teams;
 
-import com.mercadopago.resources.payment.Payment;
 import jakarta.persistence.*;
 import lombok.*;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import org.hibernate.annotations.BatchSize;
 import rinhacampusiv.api.v2.domain.tournaments.payments.PaymentEntity;
 import rinhacampusiv.api.v2.domain.tournaments.players.Player;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PlayerRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PlayerRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamUpdateData;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
 import rinhacampusiv.api.v2.domain.user.User;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
+
+
+@Entity
+@Table(name = "teams")
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
-@ToString(exclude = {"players", "payment"})
-@Entity
-@Table(name = "teams")
+@ToString(exclude = {"players", "payments"})
 public class Team {
 
     @Id
@@ -40,6 +47,7 @@ public class Team {
     private String shieldUrl;
 
     @Column(nullable = false, length = 30)
+    @Enumerated(EnumType.STRING)
     private TeamStatus status; // PENDING_PAYMENT, ACTIVE
 
     @Column(nullable = false)
@@ -48,10 +56,13 @@ public class Team {
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @BatchSize(size = 32)
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players = new ArrayList<>();
 
+    @BatchSize(size = 32)
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC") // ordena pela coluna created_at em ordem crescente
     private List<PaymentEntity> payments  = new ArrayList<>();
 
     public Team(TeamRegisterData data, User captain, Tournament tournament) {
@@ -73,6 +84,7 @@ public class Team {
 
     public void paymentGenerated(PaymentEntity payment) {
         this.payments.add(payment);
+        this.status = TeamStatus.PENDING_PAYMENT;
     }
 
     public void approvedPayment(){
@@ -81,12 +93,37 @@ public class Team {
         this.players.forEach(player -> player.setActive(true));
     }
 
+    public void expiredPayment(){
+        this.setStatus(TeamStatus.EXPIRED_PAYMENT);
+    }
+
+    public void expiredPaymentProblem(){
+        this.setStatus(TeamStatus.EXPIRED_PAYMENT_PROBLEM);
+    }
+
+    public void cancelPayment(){
+        this.status = TeamStatus.CANCELED;
+    }
+
+    public void cancelByUser(){
+        this.status = TeamStatus.CANCELED;
+    }
+
     public void updateData(TeamUpdateData data) {
         if (data.teamName() != null)      this.name      = data.teamName();
         if (data.shieldUrl() != null) this.shieldUrl = data.shieldUrl();
     }
 
+    public void ban(){
+        this.setStatus(TeamStatus.BANNED);
+        this.setActive(false);
+    }
+
     public boolean isPendingPayment() {
-        return "PENDING_PAYMENT".equals(this.status);
+        return this.status == TeamStatus.PENDING_PAYMENT;
+    }
+
+    public Integer getPlayersCount(){
+        return this.players.size();
     }
 }

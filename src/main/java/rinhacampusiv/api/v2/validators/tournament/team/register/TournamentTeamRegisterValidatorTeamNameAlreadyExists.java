@@ -1,0 +1,24 @@
+package rinhacampusiv.api.v2.validators.tournament.team.register;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRepository;
+import rinhacampusiv.api.v2.domain.tournaments.teams.TeamStatus;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
+import rinhacampusiv.api.v2.infra.exception.tournaments.ValidatorException;
+
+@Component
+public class TournamentTeamRegisterValidatorTeamNameAlreadyExists implements TournamentTeamRegisterValidator {
+
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Override
+    public void validate(TournamentRegistrationData data, Tournament tournament){
+        String teamName = data.teamData().teamName();
+        if(teamRepository.existsByNameAndTournamentIdAndStatusNot(teamName, tournament.getId(), TeamStatus.CANCELED)){
+           throw new ValidatorException(String.format("Já existe uma equipe com o nome \"%s\" cadastrada neste torneio", teamName));
+        }
+    }
+}

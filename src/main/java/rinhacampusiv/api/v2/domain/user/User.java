@@ -1,12 +1,15 @@
 package rinhacampusiv.api.v2.domain.user;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import rinhacampusiv.api.v2.domain.auth.RegisterData;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -77,10 +80,14 @@ public class User implements UserDetails {
         if (data.newPassword() != null) {
             this.password = encoder.encode(data.newPassword());
         }
+    }
 
-        if (data.profilePic() != null){
-            this.profilePic = data.profilePic();
-        }
+    public void updateNickname(UserDataUpdateDTO data){
+        this.nickname = data.nickname();
+    }
+
+    public void updateProfilePic(String profilePicUrl){
+        this.profilePic = profilePicUrl;
     }
 
     public void resetPassword(String encodedPassword) {

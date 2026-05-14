@@ -1,0 +1,1 @@
+ALTER TABLE tournaments ADD COLUMN rules_url VARCHAR(255);

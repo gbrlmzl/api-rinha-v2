@@ -1,0 +1,27 @@
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code
+        run: |
+          cd ~/projects/api-rinha-v2
+          git fetch origin
+          git reset --hard origin/dev
+
+      - name: Rebuild backend container
+        run: |
+          cd ~/projects/rinha-deploy
+          docker compose --profile full-stack up -d --build backend
+
+      - name: Wait for healthy startup
+        run: |
+          sleep 20
+          docker compose -f ~/projects/rinha-deploy/docker-compose.yml --profile full-stack ps backend
+          docker compose -f ~/projects/rinha-deploy/docker-compose.yml logs --tail 30 backend

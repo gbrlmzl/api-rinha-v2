@@ -17,8 +17,8 @@ public record UserDataUpdateDTO(
                 message = "Senha deve conter ao menos uma letra maiúscula e um número")
         String newPassword,
 
-        String currentPassword,  // obrigatório se newPassword for enviado
+        String currentPassword  // obrigatório se newPassword for enviado
 
-        String profilePic
+
 ) {}
 

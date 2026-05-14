@@ -15,9 +15,9 @@ public class SpringDocConfigurations {
         return new OpenAPI()
                 .components(new Components())
                 .info(new Info()
-                        .title("Rinha Campus IV API")
+                        .title("Rinha da UFPB API")
                         .version("v2")
-                        .description("API REST da aplicação Rinha Campus IV, contendo funcionalidades de autenticação, gerenciamento de torneios, times, jogadores e pagamentos.")
+                        .description("API REST da aplicação Rinha da UFPB IV, contendo funcionalidades de autenticação, gerenciamento de torneios, times, jogadores e pagamentos.")
                         .contact(new Contact()
                                 .name("Time Backend")
                                 .email("rinhaufpb@gmail.com")));

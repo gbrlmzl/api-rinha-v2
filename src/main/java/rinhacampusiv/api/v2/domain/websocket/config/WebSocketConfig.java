@@ -1,6 +1,7 @@
 package rinhacampusiv.api.v2.domain.websocket.config;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -11,12 +12,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry){
-        //local onde o REACT tem que estar conectado para receber mensagens
+        String[] origins = allowedOrigins.split("\\s*,\\s*");
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000") //http://localhost:3000
-                //ativa o suporte para navegadores antigos
+                .setAllowedOrigins(origins)
                 .withSockJS();
     }
 

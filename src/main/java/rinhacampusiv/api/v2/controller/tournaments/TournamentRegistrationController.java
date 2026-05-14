@@ -1,24 +1,23 @@
 package rinhacampusiv.api.v2.controller.tournaments;
 
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.GeneratedPaymentData;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.PaymentRegistrationDataMercadoPago;
-import rinhacampusiv.api.v2.domain.tournaments.registrations.TournamentRegistrationData;
-import rinhacampusiv.api.v2.domain.tournaments.teams.TeamRegisterData;
-import rinhacampusiv.api.v2.domain.tournaments.teams.TeamShieldData;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.Tournament;
-import rinhacampusiv.api.v2.domain.tournaments.tournaments.TournamentRepository;
-import rinhacampusiv.api.v2.domain.user.User;
-import rinhacampusiv.api.v2.service.ProcessTournamentRegistrationService;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.CancelRegistrationDto;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.PaymentRegistrationDataMercadoPago;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.request.TournamentRegistrationData;
+import rinhacampusiv.api.v2.domain.tournaments.registrations.response.GeneratedPaymentData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.CanceledTeamData;
+import rinhacampusiv.api.v2.domain.tournaments.teams.dtos.TeamRegisterData;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.NameAvailabilityResponseDTO;
+import rinhacampusiv.api.v2.domain.tournaments.tournaments.dtos.TournamentRegistrationStatusData;
+import rinhacampusiv.api.v2.service.tournaments.registration.TournamentRegistrationService;
 
 import java.net.URI;
 
@@ -28,31 +27,65 @@ import java.net.URI;
 public class TournamentRegistrationController {
 
     @Autowired
-    private ProcessTournamentRegistrationService processTournamentRegistration;
+    private TournamentRegistrationService tournamentRegistrationService;
 
-
-    // Controller
-    @PostMapping(value = "/{tournamentId}/registrations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<GeneratedPaymentData> register(
+    @PutMapping(value = "/{tournamentId}/registrations")
+    public ResponseEntity<CanceledTeamData> cancelRegistrationInTournament(
+            @RequestBody @Valid CancelRegistrationDto cancelRegistration,
             @PathVariable Long tournamentId,
-            @RequestPart("teamData")    @Valid TeamRegisterData teamData,
+            Authentication authentication
+    ) {
+        CanceledTeamData updatedTeam = tournamentRegistrationService.updateTeam(tournamentId, cancelRegistration, authentication);
+        return ResponseEntity.ok(updatedTeam);
+    }
+
+
+    @PostMapping(value = "/{tournamentId}/registrations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<GeneratedPaymentData> registerTeamInTournament(
+            @PathVariable Long tournamentId,
+            @RequestPart(value = "teamData", required = false) @Valid TeamRegisterData teamData,
             @RequestPart("paymentData") @Valid PaymentRegistrationDataMercadoPago paymentData,
             @RequestPart(value = "teamShield", required = false) MultipartFile teamShield,
             Authentication authentication) {
 
-        // monta o TournamentRegistrationData internamente
         var registrationData = new TournamentRegistrationData(teamData,paymentData);
 
-        GeneratedPaymentData result = processTournamentRegistration.registerTeam(
-                tournamentId, registrationData,teamShield, authentication
+        GeneratedPaymentData generatedPaymentData = tournamentRegistrationService.registerTeam(
+                tournamentId, registrationData, teamShield, authentication
         );
 
-        URI uri = URI.create("/payments/" + result.uuid());
+        URI uri = URI.create("/payments/" + generatedPaymentData.uuid());
 
-        return ResponseEntity.created(uri).body(result);
+        return ResponseEntity.created(uri).body(generatedPaymentData);
     }
 
+    @GetMapping(value = "/{tournamentSlug}/registrations")
+    public ResponseEntity<TournamentRegistrationStatusData> getTeamRegistrationStatusInTournament(
+            @PathVariable String tournamentSlug,
+            Authentication authentication) {
 
+        var registrationStatus = tournamentRegistrationService.getRegistrationStatus(
+                tournamentSlug, authentication
+        );
+
+        return ResponseEntity.ok(registrationStatus);
+
+
+    }
+
+    @GetMapping("/{tournamentId}/teams/name-availability")
+    public ResponseEntity<NameAvailabilityResponseDTO> checkTeamNameAvailability(
+            @PathVariable Long tournamentId,
+            @RequestParam String name) {
+
+        var existTeamNameInTournament = tournamentRegistrationService.checkExistentTeamNameInTournament(tournamentId, name.trim());
+        if (existTeamNameInTournament) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new NameAvailabilityResponseDTO(false));
+        }
+
+        return ResponseEntity.ok(new NameAvailabilityResponseDTO(true));
+    }
 
 
 
