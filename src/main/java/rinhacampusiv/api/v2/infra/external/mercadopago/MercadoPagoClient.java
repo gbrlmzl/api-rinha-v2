@@ -121,7 +121,7 @@ public class MercadoPagoClient {
                 .description("Inscrição - Rinha da UFPB")
                 .paymentMethodId("pix")
                 .dateOfExpiration(expiresAt)
-                    .notificationUrl(notificationUrl)
+                .notificationUrl(notificationUrl)
                 .payer(payerData)
                 .build();
 

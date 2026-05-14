@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import rinhacampusiv.api.v2.infra.exception.auth.*;
 import rinhacampusiv.api.v2.infra.exception.payments.MercadoPagoPaymentException;
 import rinhacampusiv.api.v2.infra.exception.payments.PaymentNotFoundException;
@@ -224,6 +225,14 @@ public class GlobalExceptionHandler {
     }
 
     //==================================================================================================================
+    // Rota inexistente
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<?> tratarRotaInexistente(NoHandlerFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Rota não encontrada: " + ex.getRequestURL()));
+    }
+
     // 404 genérico (JPA)
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> tratarErro404(Exception ex) {

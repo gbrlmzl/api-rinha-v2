@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import rinhacampusiv.api.v2.domain.user.User;
@@ -18,6 +19,15 @@ public class TokenService {
 
     @Value("${api.security.token.secret}")
     private String secret;
+
+    @PostConstruct
+    public void validateSecret() {
+        if (secret == null || secret.length() < 64) {
+            throw new IllegalStateException(
+                "JWT_SECRET deve ter no mínimo 64 caracteres. Use: openssl rand -hex 64"
+            );
+        }
+    }
 
     public String generateToken(User usuario) {
         try {
