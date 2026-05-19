@@ -264,6 +264,6 @@ public class TournamentRegistrationService {
     }
 
     private BigDecimal calculateRegistrationPrice(Integer playersAmount) {
-        return playersAmount == 5 ? new BigDecimal(5) : new BigDecimal(6);
+        return playersAmount == 5 ? new BigDecimal(50) : new BigDecimal(60);
     }
 }
