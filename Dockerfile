@@ -19,7 +19,7 @@ WORKDIR /app
 RUN groupadd -r spring && useradd -r -u 1001 -g spring spring
 
 # Diretorio de logs (montado como volume no compose em prod)
-RUN mkdir -p /var/logs/rinhaufpb && chown -R spring:spring /var/logs/rinhaufpb
+RUN mkdir -p /var/logs/rinhacampusiv && chown -R spring:spring /var/logs/rinhacampusiv
 
 COPY --from=builder --chown=spring:spring /app/target/*.jar app.jar
 

@@ -33,7 +33,7 @@ public class SecurityConfigurations {
     private CustomAuthEntryPoint authEntryPoint;
 
     // Origins permitidos pelo CORS, separados por virgula. Default cobre dev local.
-    // Em prod definir CORS_ALLOWED_ORIGINS=https://rinhaufpb.com (ou multiplos).
+    // Em prod definir CORS_ALLOWED_ORIGINS=https://rinhacampusiv.org (ou multiplos).
     @Value("${app.cors.allowed-origins:http://localhost:3000}")
     private String allowedOriginsCsv;
 
