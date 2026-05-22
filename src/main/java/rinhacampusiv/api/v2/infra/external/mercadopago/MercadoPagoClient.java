@@ -118,7 +118,7 @@ public class MercadoPagoClient {
 
         PaymentCreateRequest paymentData = PaymentCreateRequest.builder()
                 .transactionAmount(value)
-                .description("Inscrição - Rinha da UFPB")
+                .description("Inscrição - Rinha do Campus IV")
                 .paymentMethodId("pix")
                 .dateOfExpiration(expiresAt)
                 .notificationUrl(notificationUrl)
